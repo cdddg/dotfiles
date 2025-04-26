@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+./dotbot/bin/dotbot -vv -c install.conf.yaml
