@@ -1,0 +1,28 @@
+if [[ -d /usr/local/opt/coreutils/libexec/gnubin ]]; then
+  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  alias ls='ls --color=auto'
+fi
+
+# IP addresses
+alias localip='ipconfig getifaddr en0'
+
+# tig
+alias tiga='tig --all'
+
+# trans
+alias enzh="$HOME/trans -show-original-phonetics Y -speak en:zh-tw"
+alias zhen="$HOME/trans -play zh:en -b"
+
+# pre-commit
+alias pre-push='pre-commit run --hook-stage push'
+
+# cd to python command location
+alias cdpy='cd $(which python | sed -e "s%/bin/python%%g")'
+
+# Remove .pyc files and __pycache__ directories
+alias rmpyc='find . \( -name "*.pyc" -or -name "*.pyo" \) -delete; find . -type d -name "__pycache__" -empty -print -delete'
+
+# Remove .DS_Store files and empty directories, excluding .git directories
+alias rmemptydir='find . -name .DS_Store -delete; find . -type d ! -path "*/.git/*" -type d -empty -print -delete'
+
+alias path='echo -e ${PATH//:/\\n}'

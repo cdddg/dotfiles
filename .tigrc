@@ -1,0 +1,15 @@
+color cursor default color8 bold
+color title-focus color0 color4 bold
+color title-blur color0 color4 bold
+
+set diff-highlight = true
+set vertical-split = yes
+set reference-format = [head][HEAD] (branch) {tag} {local-tag} <remote> hide:tracked-remote
+set line-graphics = auto
+
+set main-view = date:custom,format="%Y/%m/%d %H:%M:%S",local=true id author commit-title:yes,graph,refs
+set main-view-author-display = email-user
+set main-view-commit-title-graph = v2
+set main-view-id-width = 8
+
+bind main > >git checkout %(commit)

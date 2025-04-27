@@ -1,0 +1,5 @@
+color:
+  when: auto
+  theme: custom
+total-size: false
+# date: "+%Y-%m-%d %H:%M:%S "

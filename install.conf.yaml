@@ -1,0 +1,20 @@
+- defaults:
+    link:
+      create: true
+      force: true
+- link:
+    ~/.zshrc: zsh/.zshrc
+    ~/.zprofile: zsh/.zprofile
+    ~/.zsh_aliases: zsh/.zsh_aliases
+    ~/.tigrc: .tigrc
+    ~/.lazygit: .lazygit
+    ~/.tmux.conf: tmux/.tmux.conf
+    ~/.tmux: tmux/.tmux
+    ~/.config/nvim: nvim
+    ~/.config/lsd: lsd
+    ~/.config/kitty: kitty
+- shell:
+    - command: sh ./scripts/setup-brew.sh
+      description: Install Homebrew and Brew packages
+    - command: sh ./scripts/setup-pyenv.sh
+      description: Install multiple Python versions via pyenv
