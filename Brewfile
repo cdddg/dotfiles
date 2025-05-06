@@ -3,6 +3,7 @@
 # Tap repositories
 tap "bats-core/bats-core"
 
+
 ### -- System Utilities --
 
 # GNU File, Shell, and Text utilities
@@ -20,6 +21,7 @@ brew "tmux"
 # Display directories as trees (with optional color/HTML output)
 brew "tree"
 
+
 ### -- Editors and Code Formatters --
 
 # Ambitious Vim-fork focused on extensibility and agility
@@ -30,6 +32,11 @@ brew "prettierd"
 brew "shfmt"
 # Dockerfile format and parser. a modern dockfmt
 brew "dockerfmt"
+# TOML toolkit written in Rust
+brew install taplo
+# SQL linter and auto-formatter for Humans
+brew install sqlfluff
+
 
 ### -- Search and Parsing Tools --
 
@@ -38,6 +45,7 @@ brew "ripgrep"
 # Process YAML, JSON, XML, CSV and properties documents from the CLI
 brew "yq"
 
+
 ### -- Git Utilities --
 
 # Clone of cat(1) with syntax highlighting and Git integration
@@ -45,15 +53,24 @@ brew "bat"
 # Text interface for Git repositories
 brew "tig"
 
+
+### -- Languages & Toolchains --
+
+# Also known as: node.js, node@23, nodejs, npm
+brew "node"
+
+
 ### -- Python Tools --
 
 # Python version management
 brew "pyenv"
 
+
 ### -- Load Testing Tools --
 
 # HTTP load testing tool and library
 brew "vegeta"
+
 
 ### -- Testing Tools (Bats-core plugins) --
 

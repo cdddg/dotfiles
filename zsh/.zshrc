@@ -63,6 +63,7 @@ HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=50000
 
-[ -f ~/.zsh_aliases ] && source ~/.zsh_aliases
+source ~/.zsh_aliases
+source ~/.zsh_functions
 
 printf "\r\033[K  .zshrc loaded in %.4fs\n" "$(echo "$EPOCHREALTIME - $zsh_start" | bc -l)"

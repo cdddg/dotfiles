@@ -6,6 +6,7 @@
     ~/.zshrc: zsh/.zshrc
     ~/.zprofile: zsh/.zprofile
     ~/.zsh_aliases: zsh/.zsh_aliases
+    ~/.zsh_functions: zsh/.zsh_functions
     ~/.tigrc: .tigrc
     ~/.lazygit: .lazygit
     ~/.tmux.conf: tmux/.tmux.conf
@@ -18,3 +19,7 @@
       description: Install Homebrew and Brew packages
     - command: sh ./scripts/setup-pyenv.sh
       description: Install multiple Python versions via pyenv
+    - command: sh ./scripts/setup-git.sh
+      description: Configure Git global settings
+    - command: xargs -n1 npm install --verbose -g < .npm-global-packages
+      description: Install global npm packages listed in ~/.npm-global-packages
