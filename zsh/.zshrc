@@ -67,3 +67,10 @@ source ~/.zsh_aliases
 source ~/.zsh_functions
 
 printf "\r\033[K  .zshrc loaded in %.4fs\n" "$(echo "$EPOCHREALTIME - $zsh_start" | bc -l)"
+
+# bun completions
+[ -s "/Users/imp.lin/.bun/_bun" ] && source "/Users/imp.lin/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

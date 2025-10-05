@@ -26,3 +26,4 @@ alias rmpyc='find . \( -name "*.pyc" -or -name "*.pyo" \) -delete; find . -type 
 alias rmemptydir='find . -name .DS_Store -delete; find . -type d ! -path "*/.git/*" -type d -empty -print -delete'
 
 alias path='echo -e ${PATH//:/\\n}'
+alias ls='lsd'
