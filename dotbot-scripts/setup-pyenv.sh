@@ -2,8 +2,8 @@
 
 set -e
 
-# This script sets up the required CFLAGS and LDFLAGS for Python installation, 
-# installs the latest patch versions of Python 3.9, 3.10 and 3.11 using pyenv, 
+# This script sets up the required CFLAGS and LDFLAGS for Python installation,
+# installs the latest patch versions of Python 3.9, 3.10 and 3.11 using pyenv,
 # and upgrades pip, poetry, and virtualenv for all installed Python versions.
 
 # Define environment variables
@@ -11,7 +11,7 @@ export CFLAGS="-I$(brew --prefix openssl)/include -I$(brew --prefix readline)/in
 export LDFLAGS="-L$(brew --prefix openssl)/lib -L$(brew --prefix readline)/lib -L$(xcrun --show-sdk-path)/usr/lib"
 
 # Install the latest patch versions of Python
-for ver in "3.9" "3.10" "3.11"; do
+for ver in "3.9" "3.10" "3.11" "3.12" "3.13" "3.14"; do
     latest_version=$(pyenv install --list | grep -E "^\s*$ver\.[0-9].*" | tail -1 | tr -d '[:space:]')
     if ! pyenv versions --bare | grep -qx "$latest_version"; then
         pyenv install $latest_version
@@ -28,4 +28,3 @@ for ver in $(ls $HOME/.pyenv/versions); do
     fi
     $HOME/.pyenv/versions/$ver/bin/python -m pip install --upgrade pip poetry pynvim virtualenv &
 done
-

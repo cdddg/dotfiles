@@ -1,61 +1,18 @@
-show_256_colors() {
-  # 顯示 256 色彩對應的色碼、HEX 與 RGB 值
-
-  local i hex name val r g b rgb_str
-  # 6 色階數值，用於 6x6x6 顏色立方體計算
-  local levels=(0 95 135 175 215 255)
-
-  # 步驟 1：如果安裝並啟用 kitty 遠端控制，讀取主題色
-  if command -v kitty >/dev/null 2>&1 && kitty @ get-colors --configured >/dev/null 2>&1; then
-    # Zsh 用 typeset，Bash 用 declare
-    if [ -n "$ZSH_VERSION" ]; then
-      typeset -A colors
-    else
-      declare -A colors
-    fi
-    # 讀取每行 'colorN #RRGGBB'，儲存到 colors 陣列
-    while read -r name val; do
-      [[ $name == color* ]] && colors[${name#color}]=$val
-    done < <(kitty @ get-colors --configured)
+tig() {
+  # 擴充 tig 指令，支援 dangling 子命令來查看懸空的 commits
+  if [[ "$1" == "dangling" ]]; then
+    command tig --all $(git fsck --no-reflog | awk "/dangling commit/ {print \$3}")
+  else
+    command tig "$@"
   fi
-
-  # 步驟 2：逐一列印 0-255 色碼，每行 4 個項目
-  for (( i = 0; i < 256; i++ )); do
-    # 取得系統色 HEX 值（0-15），若無則以單空格佔位
-    hex=${colors[$i]:- }  
-
-    # 計算 RGB 三原色
-    if [[ -n "${colors[$i]}" ]]; then
-      # 系統色 0–15：由 HEX 解析
-      local h="${hex#\#}"
-      # 短 HEX（#RGB）展開成 #RRGGBB
-      [[ ${#h} -eq 3 ]] && h="${h:0:1}${h:0:1}${h:1:1}${h:1:1}${h:2:1}${h:2:1}"
-      r=$((16#${h:0:2})); g=$((16#${h:2:2})); b=$((16#${h:4:2}))
-    elif (( i >= 16 && i <= 231 )); then
-      # 6x6x6 顏色立方體
-      idx=$((i - 16))
-      r=${levels[idx/36]}
-      g=${levels[(idx/6)%6]}
-      b=${levels[idx%6]}
-    else
-      # 灰階階調 232–255
-      val=$((8 + (i - 232) * 10))
-      r=$val; g=$val; b=$val
-    fi
-    rgb_str="RGB(${r},${g},${b})"
-
-    # 步驟 3：列印格式
-    #   - 兩個空格 + 三位色碼索引
-    #   - 背景色顯示，文字固定為 '  ' (寬度2)
-    #   - 使用 ANSI 256 色顯示 HEX 字串 (固定寬度7)
-    #   - 顯示 RGB 字串 (寬度16)
-    printf "  %3d  \e[48;5;%sm%-2s\e[0m \e[38;5;%sm%-7s\e[0m %-16s" \
-      "$i" "$i" "  " "$i" "${hex}" "$rgb_str"
-
-    # 每 4 個色碼換行
-    (( (i + 1) % 4 == 0 )) && echo
-  done
-
-  # 重置終端樣式
-  tput sgr0
 }
+
+# pet: Ctrl+S to search and insert snippet
+function pet-select() {
+  BUFFER=$(pet search --query "$LBUFFER")
+  CURSOR=$#BUFFER
+  zle redisplay
+}
+zle -N pet-select
+stty -ixon
+bindkey '^s' pet-select

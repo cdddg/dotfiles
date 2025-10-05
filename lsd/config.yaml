@@ -1,5 +1,6 @@
 color:
   when: auto
   theme: custom
+date: "+%Y-%m-%d %a %H:%M:%S"
 total-size: false
-# date: "+%Y-%m-%d %H:%M:%S "
+hyperlink: auto

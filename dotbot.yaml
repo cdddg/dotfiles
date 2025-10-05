@@ -1,0 +1,30 @@
+- defaults:
+    link:
+      create: true
+      force: true
+- link:
+    ~/.zshrc: zsh/.zshrc
+    ~/.zprofile: zsh/.zprofile
+    ~/.zsh_aliases: zsh/.zsh_aliases
+    ~/.zsh_functions: zsh/.zsh_functions
+    ~/.tmux.conf: tmux/.tmux.conf
+    ~/.tmux: tmux/.tmux
+    ~/.tigrc: git/.tigrc
+    ~/.lazygit: git/.lazygit
+    ~/.config/nvim: nvim
+    ~/.config/lsd: lsd
+    ~/.config/kitty: kitty
+    ~/.config/btop: btop
+    ~/.config/pet: pet
+    ~/.local/bin/cmd-stats: bin/cmd-stats
+    ~/.local/bin/show-256-colors: bin/show-256-colors
+    ~/.local/bin/lsd-git-help: bin/lsd-git-help
+- shell:
+    - command: sh ./dotbot-scripts/setup-brew.sh
+      description: Install Homebrew and Brew packages
+    - command: sh ./dotbot-scripts/setup-pyenv.sh
+      description: Install multiple Python versions via pyenv
+    - command: sh ./dotbot-scripts/setup-git.sh
+      description: Configure Git global settings
+    - command: xargs -n1 sh -c 'printf "%-0s -> " "$0" && npm install --no-fund -g "$0" 2>&1 | grep -E "(added|changed|removed|up to date)" | head -1' < npm-packages.txt
+      description: Install global npm packages

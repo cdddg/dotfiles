@@ -1,38 +1,56 @@
-user: "#cdd6f4" # default: cba6f7
-group: "#cdd6f4" # default: b4befe
+# Catppuccin Mocha theme for lsd
+# Reference: https://catppuccin.com/
+
+# User and Group - subdued colors since usually same owner
+user: "#6c7086" # surface2 - low contrast
+group: "#585b70" # surface1 - even more subdued
+
+# Permissions - semantic colors
 permission:
-  read: "#a6e3a1"
-  write: "#f9e2af"
-  exec: "#eba0ac"
-  exec-sticky: "#cba6f7"
-  no-access: "#a6adc8"
-  octal: "#94e2d5"
-  acl: "#94e2d5"
-  context: "#89dceb"
+  read: "#a6e3a1" # green - safe operation
+  write: "#f9e2af" # yellow - caution
+  exec: "#eba0ac" # maroon - executable
+  exec-sticky: "#cba6f7" # mauve - special permissions
+  no-access: "#a6adc8" # overlay2 - disabled
+  octal: "#94e2d5" # teal
+  acl: "#94e2d5" # teal
+  context: "#89dceb" # sky
+
+# Date - gradient by recency (most recent = brightest)
 date:
-  hour-old: "#cdd6f4" # default: 94e2d5
-  day-old: "#cdd6f4" # default: 89dceb
-  older: "#cdd6f4" # default: 74c7ec
+  hour-old: "#f5c2e7" # pink - recently modified, most visible
+  day-old: "#cba6f7" # mauve - moderately old
+  older: "#6c7086" # surface2 - old files, subdued
+
+# Size - gradient by file size
 size:
-  none: "#a6adc8"
-  small: "#a6e3a1"
-  medium: "#f9e2af"
-  large: "#fab387"
+  none: "#a6adc8" # overlay2 - empty/directory
+  small: "#a6e3a1" # green - small files
+  medium: "#f9e2af" # yellow - medium files
+  large: "#fab387" # peach - large files
+
+# Inode numbers
 inode:
-  valid: "#f5c2e7"
-  invalid: "#a6adc8"
+  valid: "#f5c2e7" # pink
+  invalid: "#a6adc8" # overlay2
+
+# Hard links
 links:
-  valid: "#f5c2e7"
-  invalid: "#a6adc8"
-tree-edge: "#bac2de"
+  valid: "#f5c2e7" # pink
+  invalid: "#a6adc8" # overlay2
+
+# Tree view edges
+tree-edge: "#bac2de" # overlay1
+
+# Git status - semantic colors matching git conventions
 git-status:
-  default: "#cdd6f4"
-  unmodified: "#a6adc8"
-  ignored: "#a6adc8"
-  new-in-index: "#a6e3a1"
-  new-in-workdir: "#a6e3a1"
-  typechange: "#f9e2af"
-  deleted: "#f38ba8"
-  renamed: "#a6e3a1"
-  modified: "#f9e2af"
-  conflicted: "#f38ba8"
+  default: "#cdd6f4" # text - default
+  unmodified: "#a6adc8" # overlay2 - no changes
+  ignored: "#a6adc8" # overlay2 - ignored files
+  new-in-index: "#a6e3a1" # green - staged new files
+  new-in-workdir: "#a6e3a1" # green - untracked files
+  typechange: "#f9e2af" # yellow - type changed
+  deleted: "#f38ba8" # red - deleted
+  renamed: "#a6e3a1" # green - renamed
+  modified: "#f9e2af" # yellow - modified
+  conflicted: "#f38ba8" # red - merge conflicts

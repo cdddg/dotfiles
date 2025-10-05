@@ -1,0 +1,35 @@
+#!/usr/bin/env zsh
+# lsg - lsd git status symbols reference
+# Show the meaning of git status symbols used by lsd --git
+
+cat <<'EOF'
+lsd Git Status Symbols (from git status --short format)
+
+Position:
+  [Index] [Working Dir]
+   ├─── Staged status (first character)
+   └─── Working directory status (second character)
+
+Symbols:
+  --   unmodified (clean)
+  .M   modified in working directory (not staged)
+  M.   modified and staged
+  MM   modified (both staged and working directory)
+  .A   new file (untracked)
+  A.   new file (staged)
+  .D   deleted in working directory (not staged)
+  D.   deleted and staged
+  .R   renamed
+  .T   typechange (e.g., file ↔ symlink)
+  .C   conflicted (merge conflict)
+  ??   untracked (not in git)
+  !!   ignored (in .gitignore)
+
+Usage:
+  lsd -lg          # show git status with long format
+  lsd -lag         # include hidden files
+  lsd -lg --tree   # tree view with git status
+
+Compare with:
+  git status -s    # see git's short format output
+EOF

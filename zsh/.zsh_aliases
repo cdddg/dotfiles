@@ -6,9 +6,6 @@ fi
 # IP addresses
 alias localip='ipconfig getifaddr en0'
 
-# tig
-alias tiga='tig --all'
-
 # trans
 alias enzh="$HOME/trans -show-original-phonetics Y -speak en:zh-tw"
 alias zhen="$HOME/trans -play zh:en -b"
@@ -26,3 +23,4 @@ alias rmpyc='find . \( -name "*.pyc" -or -name "*.pyo" \) -delete; find . -type 
 alias rmemptydir='find . -name .DS_Store -delete; find . -type d ! -path "*/.git/*" -type d -empty -print -delete'
 
 alias path='echo -e ${PATH//:/\\n}'
+alias ls='lsd'

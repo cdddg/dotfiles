@@ -1,7 +1,22 @@
-### -- Tap Repositories --
+### -- Casks (Applications) --
 
-# Tap repositories
-tap "bats-core/bats-core"
+# GPU-accelerated cross-platform terminal emulator
+cask "kitty"
+# Secure introspectable tunnels to localhost
+cask "ngrok"
+
+
+### -- Performance Monitoring --
+# System resource monitors: CPU, memory, disk, network, GPU monitoring tools
+#   - bandwhich: https://github.com/imsnif/bandwhich (network bandwidth monitor by process)
+#   - bottom:    https://github.com/ClementTsang/bottom
+#   - glances:   https://github.com/nicolargo/glances (30k+ stars, web interface support)
+#   - btop:      https://github.com/aristocratos/btop (modern alternative with beautiful UI)
+#   - htop:      https://github.com/htop-dev/htop
+#   - nvtop:     https://github.com/Syllo/nvtop (GPU monitoring for AMD/Intel/NVIDIA/Apple)
+
+# Cross-platform graphical process/system monitor
+brew "bottom"
 
 
 ### -- System Utilities --
@@ -10,8 +25,6 @@ tap "bats-core/bats-core"
 brew "coreutils"
 # Command-line fuzzy finder written in Go
 brew "fzf"
-# Improved top (interactive process viewer)
-brew "htop"
 # Lightweight and flexible command-line JSON processor
 brew "jq"
 # Clone of ls with colorful output, file type icons, and more
@@ -20,22 +33,26 @@ brew "lsd"
 brew "tmux"
 # Display directories as trees (with optional color/HTML output)
 brew "tree"
+# Internet file retriever
+brew "wget"
+# Command-line snippet manager
+brew "pet"
 
 
 ### -- Editors and Code Formatters --
 
 # Ambitious Vim-fork focused on extensibility and agility
 brew "neovim"
-# Prettier daemon
-brew "prettierd"
+# Tree-sitter CLI (required by nvim-treesitter for auto_install)
+brew "tree-sitter-cli"
 # Autoformat shell script source code
 brew "shfmt"
 # Dockerfile format and parser. a modern dockfmt
 brew "dockerfmt"
 # TOML toolkit written in Rust
-brew install taplo
+brew "taplo"
 # SQL linter and auto-formatter for Humans
-brew install sqlfluff
+brew "sqlfluff"
 
 
 ### -- Search and Parsing Tools --
@@ -56,23 +73,17 @@ brew "tig"
 
 ### -- Languages & Toolchains --
 
-# Also known as: node.js, node@23, nodejs, npm
+# Node.js: JavaScript runtime and npm package manager
 brew "node"
 
-
-### -- Python Tools --
-
-# Python version management
+# Python: Version management
 brew "pyenv"
 
 
-### -- Load Testing Tools --
+### -- Testing Tools --
 
 # HTTP load testing tool and library
 brew "vegeta"
-
-
-### -- Testing Tools (Bats-core plugins) --
 
 # Bash Automated Testing System (bats-core plugins)
 brew "bats-core/bats-core/bats-assert", link: false
