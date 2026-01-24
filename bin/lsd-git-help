@@ -1,35 +1,57 @@
-#!/usr/bin/env zsh
-# lsg - lsd git status symbols reference
-# Show the meaning of git status symbols used by lsd --git
+#!/usr/bin/env bash
+# lsd-git-help - Reference guide for lsd git status symbols
+#
+# Description:
+#   Displays a quick reference guide explaining the git status symbols used by
+#   lsd (LSDeluxe) when using the --git flag. Shows the meaning of index and
+#   working directory status indicators in a color-coded format.
+#
+# Usage:
+#   lsd-git-help
+#
+# Dependencies:
+#   - None (standalone reference script)
+#
+# Related:
+#   - lsd (https://github.com/lsd-rs/lsd)
+#   - git status --short format
 
-cat <<'EOF'
-lsd Git Status Symbols (from git status --short format)
+# Color codes
+BOLD='\033[1m'
+RESET='\033[0m'
+CYAN='\033[36m'
+YELLOW='\033[33m'
+GREEN='\033[32m'
+RED='\033[31m'
+BLUE='\033[34m'
+GRAY='\033[90m'
 
-Position:
+echo -e "${BOLD}${CYAN}lsd Git Status Symbols${RESET} ${GRAY}(from git status --short format)${RESET}
+
+${BOLD}${YELLOW}Position:${RESET}
   [Index] [Working Dir]
    ├─── Staged status (first character)
    └─── Working directory status (second character)
 
-Symbols:
-  --   unmodified (clean)
-  .M   modified in working directory (not staged)
-  M.   modified and staged
-  MM   modified (both staged and working directory)
-  .A   new file (untracked)
-  A.   new file (staged)
-  .D   deleted in working directory (not staged)
-  D.   deleted and staged
-  .R   renamed
-  .T   typechange (e.g., file ↔ symlink)
-  .C   conflicted (merge conflict)
-  ??   untracked (not in git)
-  !!   ignored (in .gitignore)
+${BOLD}${YELLOW}Symbols:${RESET}
+  ${GRAY}--${RESET}   unmodified (clean)
+  ${RED}.M${RESET}   modified in working directory (not staged)
+  ${GREEN}M.${RESET}   modified and staged
+  ${YELLOW}MM${RESET}   modified (both staged and working directory)
+  ${RED}.A${RESET}   new file (untracked)
+  ${GREEN}A.${RESET}   new file (staged)
+  ${RED}.D${RESET}   deleted in working directory (not staged)
+  ${GREEN}D.${RESET}   deleted and staged
+  ${BLUE}.R${RESET}   renamed
+  ${BLUE}.T${RESET}   typechange (e.g., file ↔ symlink)
+  ${RED}.C${RESET}   conflicted (merge conflict)
+  ${GRAY}??${RESET}   untracked (not in git)
+  ${GRAY}!!${RESET}   ignored (in .gitignore)
 
-Usage:
-  lsd -lg          # show git status with long format
-  lsd -lag         # include hidden files
-  lsd -lg --tree   # tree view with git status
+${BOLD}${YELLOW}Usage:${RESET}
+  ${GREEN}lsd -lg${RESET}          # show git status with long format
+  ${GREEN}lsd -lag${RESET}         # include hidden files
+  ${GREEN}lsd -lg --tree${RESET}   # tree view with git status
 
-Compare with:
-  git status -s    # see git's short format output
-EOF
+${BOLD}${YELLOW}Compare with:${RESET}
+  ${GREEN}git status -s${RESET}    # see git's short format output"

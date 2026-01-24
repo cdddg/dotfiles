@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# pet-grouped-list - Display pet snippets organized by tags
+#
+# Description:
+#   Lists all pet (command-line snippet manager) snippets grouped by their tags.
+#   Each tag group is separated by a blank line for better readability.
+#
+# Usage:
+#   pet-grouped-list
+#
+# Dependencies:
+#   - pet (https://github.com/knqyf263/pet)
+#
+# Example output:
+#   ▶ Tag: docker
+#   [1] docker ps -a
+#   [2] docker compose up -d
+#
+#   ▶ Tag: git
+#   [3] git commit --amend --no-edit
+#   [4] git rebase -i HEAD~5
+
+# Get unique tags
+mapfile -t tags < <(
+  pet list | grep 'Tag:' \
+    | sed 's/.*Tag:[[:space:]]*//' \
+    | tr ' ' '\n' \
+    | sort -u
+)
+
+# Exit if no tags found
+if [[ ${#tags[@]} -eq 0 ]]; then
+  echo "No snippets found"
+  exit 0
+fi
+
+# Display snippets grouped by tag
+for i in "${!tags[@]}"; do
+  tag="${tags[$i]}"
+  echo "▶ Tag: $tag"
+  pet list --oneline -t "$tag"
+
+  # Add spacing between groups (except last one)
+  if [[ $i -lt $((${#tags[@]} - 1)) ]]; then
+    echo
+  fi
+done

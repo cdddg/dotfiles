@@ -1,5 +1,10 @@
-@anthropic-ai/claude-code@latest
+# for Neovim Node provider (used by :checkhealth vim.provider)
+neovim@latest
+
+# format / lint
 @fsouza/prettierd@latest
-@openai/codex
 cspell@latest
+dclint@latest
 markdownlint-cli@latest
+
+# vim: filetype=conf

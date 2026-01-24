@@ -17,6 +17,6 @@ cd dotfiles
 - **Editor**: Neovim setup with modern plugins
 - **Terminal**: Kitty with Catppuccin theme
 - **Git**: tig and lazygit configurations
-- **Tools**: tmux, lsd, btop configurations
-- **Scripts**: Personal utility scripts (show-256-colors, cmd-stats)
+- **Tools**: tmux, lsd, bottom, pet configurations
+- **Scripts**: Personal utility scripts (show-256-colors, gitleaks-group, tig-gitleaks)
 - **Package Management**: Brewfile for macOS, npm-packages.txt for Node.js

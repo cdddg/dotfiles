@@ -1,0 +1,53 @@
+[color "status"]
+	added = green bold
+	changed = yellow bold
+	untracked = red bold
+
+[core]
+	excludesfile = ~/.gitignore
+	editor = nvim
+	pager = diffr \
+		--line-numbers \
+		--colors added:none:foreground:238,238,238:background:83,113,80 \
+		--colors refine-added:none:foreground:69,71,90:background:166,227,161:bold \
+		--colors removed:none:foreground:238,238,238:background:121,69,84 \
+		--colors refine-removed:none:foreground:69,71,90:background:243,139,168:bold \
+		| less -R
+
+[http]
+	postBuffer = 157286400
+
+[alias]
+	gone = "!git fetch -p && \
+		git for-each-ref --format '%(refname:short) %(upstream:track)' | \
+		awk '$2 == \"[gone]\" {print $1}' | \
+		xargs -r git branch -D"
+	sync = !hub sync
+	reset-branch-start = "!f() { \
+		MODE=''; \
+		BRANCH=''; \
+		for arg in \"$@\"; do \
+			case \"$arg\" in \
+				--hard|--soft|--mixed) MODE=\"$arg\" ;; \
+				*) BRANCH=\"$arg\" ;; \
+			esac; \
+		done; \
+		if [ -z \"$BRANCH\" ]; then \
+			echo 'Usage: git reset-branch-start [--hard|--soft|--mixed] <parent-branch>'; \
+			exit 1; \
+		fi; \
+		git reset $MODE $(git merge-base HEAD $BRANCH); \
+	}; f"
+	reset-to-root = "!f() { \
+		MODE=''; \
+		for arg in \"$@\"; do \
+			case \"$arg\" in \
+				--hard|--soft|--mixed) MODE=\"$arg\" ;; \
+				*) echo 'Usage: git reset-to-root [--hard|--soft|--mixed]'; exit 1 ;; \
+			esac; \
+		done; \
+		git reset $MODE $(git rev-list --max-parents=0 HEAD); \
+	}; f"
+
+[include]
+	path = ~/.gitconfig.local

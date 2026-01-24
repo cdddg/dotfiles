@@ -1,12 +1,82 @@
+## Neovim Setup (New Machine)
+[[snippets]]
+description = "Bob: List all available Neovim versions (sorted)"
+command = "bob list-remote | awk '{a[NR]=$0} END {for (i=NR; i>0; i--) print a[i]}'"
+tag = ["neovim"]
+output = ""
+
+[[snippets]]
+description = "Bob: List installed Neovim versions (sorted)"
+command = "bob list | awk -F '│' 'NR>3 && NF { gsub(/^[[:space:]]+|[[:space:]]+$/, \"\", $2); gsub(/^[[:space:]]+|[[:space:]]+$/, \"\", $3); if ($2 != \"\") { printf \"- %s: %s\\n\", $2, $3 } }'"
+tag = ["neovim"]
+output = ""
+
+[[snippets]]
+description = "Bob: Install specific Neovim version"
+command = "bob install <version>"
+tag = ["neovim"]
+output = ""
+
+[[snippets]]
+description = "Bob: Switch to specific Neovim version"
+command = "bob use <version>"
+tag = ["neovim"]
+output = ""
+
+
+## Git Commands
+[[snippets]]
+description = "Git: View dangling commits with gitk"
+command = "gitk --all $(git fsck --no-reflog | awk '/dangling commit/ {print $3}')"
+tag = ["git"]
+output = ""
+
+[[snippets]]
+description = "Tig: View all branches with first-parent history"
+command = "tig --all --first-parent"
+tag = ["git"]
+output = ""
+
+
+## Docker Commands
+[[snippets]]
+description = "Docker: Build image"
+command = "docker build -t <image>:<tag> ."
+tag = ["docker"]
+output = ""
+
+[[snippets]]
+description = "Docker: Run container"
+command = "docker run -it --rm <image>:<tag>"
+tag = ["docker"]
+output = ""
+
+
 ## Network Commands
 [[snippets]]
-description = "Check which process is using a specific port"
-command = "lsof -i :<port> || echo 'No process found using port <port>'"
+description = "Network: Check which process is using a specific port"
+command = "lsof -i :<port> || echo ''"
 tag = ["lsof"]
 output = ""
 
 [[snippets]]
-description = "Kill process using a specific port"
+description = "Network: Kill process using a specific port"
 command = "lsof -ti :<port> | xargs kill -9"
 tag = ["lsof"]
+output = ""
+
+
+## System Monitoring
+[[snippets]]
+description = "Bottom: System monitor (basic mode, group processes)"
+command = "btm --basic --group_processes"
+tag = ["monitor"]
+output = ""
+
+
+## Shell History (Atuin)
+[[snippets]]
+description = "Atuin: Interactive search"
+command = "atuin search --interactive"
+tag = ["atuin"]
 output = ""

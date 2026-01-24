@@ -4,6 +4,10 @@
 cask "kitty"
 # Secure introspectable tunnels to localhost
 cask "ngrok"
+# Anthropic's Claude Code CLI
+cask "claude-code"
+# OpenAI Codex CLI
+cask "codex"
 
 
 ### -- Performance Monitoring --
@@ -37,22 +41,30 @@ brew "tree"
 brew "wget"
 # Command-line snippet manager
 brew "pet"
+# Magical shell history
+brew "atuin"
 
 
 ### -- Editors and Code Formatters --
 
-# Ambitious Vim-fork focused on extensibility and agility
-brew "neovim"
+# Version manager for Neovim (https://github.com/MordechaiHadad/bob)
+brew "bob"
 # Tree-sitter CLI (required by nvim-treesitter for auto_install)
 brew "tree-sitter-cli"
-# Autoformat shell script source code
+# Shell script formatter with configurable style (shfmt)
 brew "shfmt"
-# Dockerfile format and parser. a modern dockfmt
-brew "dockerfmt"
-# TOML toolkit written in Rust
-brew "taplo"
+# Shell script static analysis tool to detect bugs and style issues (shellcheck)
+brew "shellcheck"
 # SQL linter and auto-formatter for Humans
 brew "sqlfluff"
+# Dockerfile formatter and parser, a modern dockfmt
+brew "dockerfmt"
+# Dockerfile linter for best practices and common mistakes
+brew "hadolint"
+# YAML linter to validate syntax and enforce style guidelines
+brew "yamllint"
+# GitHub Actions workflow configuration linter
+brew "actionlint"
 
 
 ### -- Search and Parsing Tools --
@@ -71,6 +83,14 @@ brew "bat"
 brew "tig"
 
 
+### -- Security Tools --
+
+# Vulnerability scanner for container images, file systems, and Git repositories
+brew "trivy"
+# Detect and prevent secrets leaks in git repositories
+brew "gitleaks"
+
+
 ### -- Languages & Toolchains --
 
 # Node.js: JavaScript runtime and npm package manager
@@ -78,6 +98,8 @@ brew "node"
 
 # Python: Version management
 brew "pyenv"
+# Python: An extremely fast Python package and project manager, written in Rust
+brew "uv"
 
 
 ### -- Testing Tools --
@@ -90,3 +112,6 @@ brew "bats-core/bats-core/bats-assert", link: false
 brew "bats-core/bats-core/bats-detik"
 brew "bats-core/bats-core/bats-file", link: false
 brew "bats-core/bats-core/bats-support", link: false
+
+
+# vim: ft=ruby

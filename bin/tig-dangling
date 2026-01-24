@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# tig-dangling - Interactive viewer for dangling git objects
+
+tig --all --no-walk $(git fsck --dangling 2>/dev/null | awk '/dangling commit/ {print $3}')

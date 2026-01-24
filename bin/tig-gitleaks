@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# tig-gitleaks - Interactive git commit viewer with gitleaks integration
+#
+# Description:
+#   Wrapper for tig that integrates with gitleaks to highlight commits containing secrets.
+#   When called without arguments, it scans the repository for leaks and displays only
+#   commits with violations in tig. With arguments, it passes them through to tig normally.
+#
+# Usage:
+#   tig-gitleaks              # Scan for leaks and show affected commits in tig
+#   tig-gitleaks [tig-args]   # Pass arguments directly to tig
+#
+# Dependencies:
+#   - tig (https://github.com/jonas/tig)
+#   - gitleaks (https://github.com/gitleaks/gitleaks)
+#   - jq (https://github.com/jqlang/jq)
+#
+# Examples:
+#   tig-gitleaks              # Show commits with secrets
+#   tig-gitleaks --all        # Normal tig with --all flag
+#   tig-gitleaks main..dev    # Normal tig with commit range
+
+show_spinner() {
+  local pid=$1
+  local delay=0.1
+  local spin='-\|/'
+
+  while kill -0 "$pid" 2>/dev/null; do
+    printf " [%c] Running gitleaks ..." "${spin:0:1}"
+    spin="${spin:1}${spin:0:1}"
+    sleep "$delay"
+    printf "\r"
+  done
+  printf "\033[K"  # Clear line
+}
+
+# If called with arguments, pass through to tig
+if [[ $# -gt 0 ]]; then
+  exec tig "$@"
+fi
+
+# Create temp file for gitleaks report
+tmp=$(mktemp) || { echo "mktemp failed" >&2; exit 1; }
+tmp="${tmp}.json"
+
+# Run gitleaks in background
+gitleaks detect --no-banner --report-format=json --report-path="$tmp" 2>/dev/null &
+gpid=$!
+
+# Show spinner while running
+show_spinner "$gpid"
+
+# Wait for completion
+wait "$gpid" || true
+
+# Read commits with leaks
+mapfile -t commits < <(jq -r '.[].Commit' "$tmp" 2>/dev/null | sort -u)
+
+# Cleanup
+rm -f "$tmp"
+
+# Show results
+if [[ ${#commits[@]} -eq 0 ]]; then
+  echo "✓ No leaks detected"
+  exit 0
+fi
+
+# Show commits in tig
+exec tig --no-walk "${commits[@]}"

@@ -1,5 +1,10 @@
-zmodload zsh/datetime
-zsh_start=$EPOCHREALTIME
+_ZSHRC_T=$EPOCHREALTIME
+
+# zsh: shell options
+WORDCHARS=${WORDCHARS//[\/\-_]/}
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
 
 # zinit: A flexible and fast Zsh plugin manager.
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -14,12 +19,7 @@ zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
 zinit light sindresorhus/pure
 zstyle ':prompt:pure:prompt:*' color cyan
 zstyle ':prompt:pure:git:stash' show yes
-
-# arcticicestudio/nord-dircolors: Nord theme for dircolors with LS_COLORS support.
-zinit ice atclone"dircolors -b LS_COLORS > clrs.zsh" \
-  atpull'%atclone' pick"clrs.zsh" nocompile'!' \
-  atload'zstyle ":completion:*" list-colors "${(s.:.)LS_COLORS}"'
-zinit light arcticicestudio/nord-dircolors
+zstyle ':prompt:pure:virtualenv' show yes
 
 # zdharma-continuum/fast-syntax-highlighting: Feature-rich syntax highlighting for Zsh.
 zinit ice lucid wait='0' atinit='zpcompinit'
@@ -38,12 +38,12 @@ zinit light zsh-users/zsh-autosuggestions
 zinit snippet OMZ::lib/history.zsh
 zinit snippet OMZ::lib/key-bindings.zsh
 zinit snippet OMZ::lib/git.zsh
-zinit snippet OMZ::plugins/git/git.plugin.zsh
-zinit snippet OMZ::plugins/colored-man-pages/colored-man-pages.plugin.zsh
-zinit snippet OMZ::plugins/extract
+zinit ice lucid wait"2" && zinit snippet OMZ::plugins/git/git.plugin.zsh
+zinit ice lucid wait"2" && zinit snippet OMZ::plugins/colored-man-pages/colored-man-pages.plugin.zsh
+zinit ice lucid wait"2" && zinit snippet OMZ::plugins/extract
 
 # MichaelAquilina/zsh-autoswitch-virtualenv: Automatically switch python virtualenvs when you cd into a directory.
-zinit wait lucid for MichaelAquilina/zsh-autoswitch-virtualenv
+zinit light MichaelAquilina/zsh-autoswitch-virtualenv
 
 # junegunn/fzf-bin: A command-line fuzzy finder (GitHub release binary).
 zinit ice from"gh-r" as"program"
@@ -57,13 +57,39 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'  #
 zstyle ':fzf-tab:*' switch-group ',' '.'  # switch group using `,` and `.`
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
 
-# zsh: shell options
-WORDCHARS=${WORDCHARS//[\/\-_]/}
-HISTFILE=~/.zsh_history
-HISTSIZE=50000
-SAVEHIST=50000
+# romkatv/zsh-defer: Defer execution of commands until zsh is idle.
+zinit light romkatv/zsh-defer
+zsh-defer -a -c 'eval "$(atuin init zsh --disable-up-arrow --disable-ctrl-r)"; bindkey "^[[A" up-line-or-history; bindkey "^[OA" up-line-or-history'
+zsh-defer -a -c '
+  eval "$(pyenv init - zsh)"
+  eval "$(poetryenv init - zsh)"
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    #
+    # Remove old VIRTUAL_ENV/bin from path, then prepend it
+    #
+    path=("$VIRTUAL_ENV/bin" ${path:#"$VIRTUAL_ENV/bin"})
+  fi
+  hash -r
+'
 
-source ~/.zsh_aliases
+
 source ~/.zsh_functions
+source ~/.zsh_aliases
 
-printf "\r\033[K  .zshrc loaded in %.4fs\n" "$(echo "$EPOCHREALTIME - $zsh_start" | bc -l)"
+_ZSH_LOAD_TIMES+=(".zshrc:$(printf '%.2f' $(( (EPOCHREALTIME - _ZSHRC_T) * 1000 )))")
+if (( ${#_ZSH_LOAD_TIMES[@]} )); then
+  local summary_line="" total_duration=0.0
+  for item in "${_ZSH_LOAD_TIMES[@]}"; do
+    local file=${item%%:*}
+    local duration=${item##*:}
+    summary_line+="${file}:${duration}ms  "
+    (( total_duration += duration ))
+  done
+
+  local label="load"
+  [[ $- == *i* && $- == *l* ]] && label="login init"
+  [[ $- == *i* && $- != *l* ]] && label="interactive init"
+  [[ $- != *i* ]] && label="non-interactive init"
+
+  printf "\r\033[K  %s %s %.2fms | %s\n" "$ZSH_NAME" "$label" "$total_duration" "$summary_line"
+fi

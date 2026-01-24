@@ -3,28 +3,76 @@
       create: true
       force: true
 - link:
-    ~/.zshrc: zsh/.zshrc
+    ~/.zshenv: zsh/.zshenv
     ~/.zprofile: zsh/.zprofile
+    ~/.zshrc: zsh/.zshrc
     ~/.zsh_aliases: zsh/.zsh_aliases
     ~/.zsh_functions: zsh/.zsh_functions
     ~/.tmux.conf: tmux/.tmux.conf
     ~/.tmux: tmux/.tmux
+    ~/.gitconfig: git/.gitconfig
     ~/.tigrc: git/.tigrc
     ~/.lazygit: git/.lazygit
     ~/.config/nvim: nvim
     ~/.config/lsd: lsd
     ~/.config/kitty: kitty
-    ~/.config/btop: btop
     ~/.config/pet: pet
-    ~/.local/bin/cmd-stats: bin/cmd-stats
-    ~/.local/bin/show-256-colors: bin/show-256-colors
+    ~/.config/bottom: bottom
+    ~/.local/bin/gitleaks-group: bin/gitleaks-group
     ~/.local/bin/lsd-git-help: bin/lsd-git-help
+    ~/.local/bin/pet-grouped-list: bin/pet-grouped-list
+    ~/.local/bin/show-256-colors: bin/show-256-colors
+    ~/.local/bin/tig-dangling: bin/tig-dangling
+    ~/.local/bin/tig-gitleaks: bin/tig-gitleaks
 - shell:
-    - command: sh ./dotbot-scripts/setup-brew.sh
-      description: Install Homebrew and Brew packages
-    - command: sh ./dotbot-scripts/setup-pyenv.sh
-      description: Install multiple Python versions via pyenv
-    - command: sh ./dotbot-scripts/setup-git.sh
-      description: Configure Git global settings
-    - command: xargs -n1 sh -c 'printf "%-0s -> " "$0" && npm install --no-fund -g "$0" 2>&1 | grep -E "(added|changed|removed|up to date)" | head -1' < npm-packages.txt
-      description: Install global npm packages
+    - description: Install Homebrew and Brew packages
+      command: |-
+        if ! command -v brew >/dev/null 2>&1; then
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+        brew update
+        brew bundle --file=./Brewfile
+        brew bundle list --brews --file=./Brewfile | xargs brew upgrade
+        brew bundle list --casks --file=./Brewfile | xargs brew upgrade --cask
+
+    - description: Install global npm packages
+      command: |-
+        grep -vE '^\s*($|#)' npm-packages.txt | \
+        xargs -n1 -I {} sh -c '
+          printf "%s -> " "{}"
+          npm install --no-fund -g "{}" 2>&1 |
+          grep -E "(added|changed|removed|up to date|updated|audited)" |
+          head -1
+        '
+
+    - description: Import shell history into atuin
+      command: |-
+        if command -v atuin >/dev/null 2>&1; then
+          atuin import auto
+        else
+          echo "atuin not installed, skipping import"
+        fi
+
+    - description: Set Kitty app icon
+      command: |-
+        if command -v kitty >/dev/null 2>&1 && [ -f "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns" ]; then
+          kitty +runpy 'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns"
+        else
+          echo "Kitty or icon file not found, skipping icon setup"
+        fi
+
+    # - description: Install multiple Python versions via pyenv
+    #   command: sh ./dotbot-scripts/setup-pyenv.sh
+
+    # - description: Install multiple Python versions via uv
+    #   command: |-
+    #     if ! command -v uv >/dev/null 2>&1; then
+    #       echo "uv not found, skipping Python installation"
+    #       exit 0
+    #     fi
+    #     uv python install 3.9 3.10 3.11 3.12
+    #     uv python list --only-installed
+    #
+    # - description: ...
+    #   command: |-
+    #     curl -fsSL https://raw.githubusercontent.com/cdddg/poetryenv/main/install.sh | bash

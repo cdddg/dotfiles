@@ -12,10 +12,10 @@ upload_url = ""
 Backend = "gist"
 Cmd = []
 Color = true
-Column = 40
+Column = 50
 Editor = "nvim"
-Format = "[$description]: $command $tags"
-SelectCmd = "fzf --ansi --layout=reverse --border --height=90% --pointer=* --cycle --prompt=Snippets:"
+Format = "$command  $tags-- $description"
+SelectCmd = "fzf --ansi --layout=reverse --border --height=90% --pointer=* --cycle --prompt=Snippets: --bind=tab:down,shift-tab:up"
 SnippetDirs = []
 SnippetFile = "~/.config/pet/snippet.toml"
 SortBy = ""

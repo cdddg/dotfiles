@@ -8,6 +8,9 @@
 [submodule "tmux/.tmux/plugins/tpm"]
 	path = tmux/.tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm
-[submodule "kitty/themes/catppuccin"]
-	path = kitty/themes/catppuccin
+[submodule "kitty/k0nserv-icon"]
+	path = kitty/k0nserv-icon
+	url = https://github.com/k0nserv/kitty-icon.git
+[submodule "kitty/catppuccin-theme"]
+	path = kitty/catppuccin-theme
 	url = https://github.com/catppuccin/kitty

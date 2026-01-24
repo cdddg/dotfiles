@@ -1,0 +1,22 @@
+[flags]
+process_memory_as_value = true
+default_widget_type = "process"
+group_processes = true
+
+[[row]]
+[[row.child]]
+type = "cpu"
+[[row.child]]
+type = "memory"
+[[row.child]]
+type = "network"
+
+[[row]]
+[[row.child]]
+ratio = 6
+type = "process"
+[[row.child]]
+[[row.child.child]]
+type = "temperature"
+[[row.child.child]]
+type = "battery"

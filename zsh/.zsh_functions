@@ -1,18 +1,265 @@
-tig() {
-  # 擴充 tig 指令，支援 dangling 子命令來查看懸空的 commits
-  if [[ "$1" == "dangling" ]]; then
-    command tig --all $(git fsck --no-reflog | awk "/dangling commit/ {print \$3}")
-  else
-    command tig "$@"
+
+# pet: Ctrl+S to search and insert snippet; https://github.com/knqyf263/pet?#zsh
+# function pet-select() {
+#   BUFFER=$(pet search --query "$LBUFFER")
+#   CURSOR=$#BUFFER
+#   zle redisplay
+# }
+# zle -N pet-select
+# stty -ixon
+# bindkey '^s' pet-select
+
+zsh-defer-list() {
+  if [[ -z $_zsh_defer_tasks ]]; then
+    echo "💤  no deferred tasks"
+    return
   fi
+
+  local -a lines
+  lines=("${(@f)_zsh_defer_tasks}")
+  local i=1
+  for line in $lines; do
+    local parts=(${(z)line})
+    local delay=${parts[1]}
+    local cmd=${(j: :)parts[3,-1]}
+    echo "[$i] ${delay}ms - ${cmd}"
+    ((i++))
+  done
 }
 
-# pet: Ctrl+S to search and insert snippet
-function pet-select() {
-  BUFFER=$(pet search --query "$LBUFFER")
-  CURSOR=$#BUFFER
-  zle redisplay
+# git: Show git aliases and functions (auto-loaded from current environment)
+#
+# Usage:
+#   zsh-git-help           # Show all aliases grouped by category
+#   zsh-git-help --list    # Show simple alphabetical list
+#   zsh-git-help commit    # Filter by keyword
+#   zsh-git-help --help    # Show help
+#
+zsh-git-help() {
+  local show_category="${1:-all}"
+
+  # Color codes
+  local BOLD='\033[1m' RESET='\033[0m' CYAN='\033[36m'
+  local GREEN='\033[32m' YELLOW='\033[33m' GRAY='\033[90m'
+
+  # Show help
+  if [[ "$show_category" == "--help" ]]; then
+    echo "Usage: zsh-git-help [mode]"
+    echo ""
+    echo "Modes:"
+    echo "  (none)    - Show all aliases grouped by category"
+    echo "  --list    - Show all aliases in a simple list"
+    echo "  <keyword> - Filter by keyword (e.g., commit, branch, stash)"
+    echo ""
+    echo "Examples:"
+    echo "  zsh-git-help              # Grouped by category"
+    echo "  zsh-git-help --list       # Simple alphabetical list"
+    echo "  zsh-git-help commit       # Filter by 'commit'"
+    return 0
+  fi
+
+  # Get plugin date
+  local plugin_file="$HOME/.local/share/zinit/snippets/OMZ::plugins--git/git.plugin.zsh"
+  local plugin_date="unknown"
+  if [[ -d "$plugin_file" ]]; then
+    local files=("$plugin_file"/**/*.zsh(N))
+    [[ ${#files[@]} -gt 0 ]] && plugin_date=$(date -r "${files[1]}" "+%Y-%m-%d" 2>/dev/null || echo "unknown")
+  fi
+
+  # Print header
+  echo -e "${BOLD}${CYAN}Git Aliases & Functions${RESET}"
+  echo -e "${GRAY}Source: Oh My Zsh git plugin (via zinit)${RESET}"
+  [[ "$show_category" != "all" ]] && echo -e "${YELLOW}Filter: $show_category${RESET}"
+  echo -e "${GRAY}Plugin updated: ${plugin_date}${RESET}\n"
+
+  # Load all git aliases and functions
+  local -A git_items
+
+  # Load aliases
+  while IFS= read -r line; do
+    if [[ $line =~ ^alias\ (\'?)([^=\']+)(\'?)=(.*)$ ]]; then
+      local name="${match[2]}" value="${match[4]}"
+      value="${value#\'}"; value="${value%\'}"
+      value="${value#\$\'}"; value="${value%\'}"
+      [[ $name == g* ]] && git_items[$name]="$value"
+    fi
+  done < <(alias -L)
+
+  # Load functions
+  for func in $(functions | grep "^g" | cut -d' ' -f1); do
+    [[ $func == _* || $func == git_* || $func == current_branch ]] && continue
+    if functions $func | grep -q "git"; then
+      git_items[$func]="<function>"
+    fi
+  done
+
+  # Mode: Keyword filter
+  if [[ "$show_category" != "all" ]] && [[ "$show_category" != "--list" ]]; then
+    local count=0
+    for key in ${(ko)git_items}; do
+      local value="${git_items[$key]}"
+      if echo "$key $value" | grep -iq "$show_category"; then
+        ((count++))
+        # Print item
+        if [[ "$value" == *"deprecated"* ]]; then
+          local replacement=$(echo "$value" | grep -o "%F{green}[^%]*" | sed 's/%F{green}//')
+          printf "  ${GRAY}%-15s${RESET} ${GRAY}→ Use ${GREEN}%s${RESET} ${GRAY}instead${RESET} ${YELLOW}(DEPRECATED)${RESET}\n" "$key" "$replacement"
+        elif [[ "$value" == "<function>" ]]; then
+          local func_body=$(functions "$key" 2>/dev/null | grep -E "git |command " | head -1 | sed 's/^[[:space:]]*//')
+          [[ ${#func_body} -gt 60 ]] && func_body="${func_body:0:57}..."
+          if [[ -n "$func_body" ]]; then
+            printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${GRAY}%s${RESET} ${CYAN}(FUNCTION)${RESET}\n" "$key" "$func_body"
+          else
+            printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${CYAN}<FUNCTION>${RESET}\n" "$key"
+          fi
+        else
+          printf "  ${GREEN}%-15s${RESET} ${GRAY}→${RESET} %s\n" "$key" "$value"
+        fi
+      fi
+    done
+    echo ""
+    echo -e "${GRAY}Showing: $count/${#git_items[@]} aliases/functions${RESET}"
+    return 0
+  fi
+
+  # Mode: Simple list
+  if [[ "$show_category" == "--list" ]]; then
+    for key in ${(ko)git_items}; do
+      local value="${git_items[$key]}"
+      if [[ "$value" == *"deprecated"* ]]; then
+        local replacement=$(echo "$value" | grep -o "%F{green}[^%]*" | sed 's/%F{green}//')
+        printf "  ${GRAY}%-15s${RESET} ${GRAY}→ Use ${GREEN}%s${RESET} ${GRAY}instead${RESET} ${YELLOW}(DEPRECATED)${RESET}\n" "$key" "$replacement"
+      elif [[ "$value" == "<function>" ]]; then
+        local func_body=$(functions "$key" 2>/dev/null | grep -E "git |command " | head -1 | sed 's/^[[:space:]]*//')
+        [[ ${#func_body} -gt 60 ]] && func_body="${func_body:0:57}..."
+        if [[ -n "$func_body" ]]; then
+          printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${GRAY}%s${RESET} ${CYAN}(FUNCTION)${RESET}\n" "$key" "$func_body"
+        else
+          printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${CYAN}<FUNCTION>${RESET}\n" "$key"
+        fi
+      else
+        printf "  ${GREEN}%-15s${RESET} ${GRAY}→${RESET} %s\n" "$key" "$value"
+      fi
+    done
+    echo ""
+    echo -e "${GRAY}Total: ${#git_items[@]} aliases/functions${RESET}"
+    return 0
+  fi
+
+  # Mode: Grouped by category (default)
+  local -A item_categories
+  local category_order=(
+    "Basic (status, diff)" "Add" "Commit" "Branch" "Checkout/Switch"
+    "Pull/Fetch" "Push" "Merge" "Rebase" "Stash" "Log"
+    "Reset/Clean/Restore" "Remote" "Show/Describe" "Tags" "Worktree"
+    "Cherry-pick" "Revert" "Bisect" "Submodule" "Other"
+  )
+
+  # Categorize items
+  for key in ${(k)git_items}; do
+    local value="${git_items[$key]}"
+    case "$value" in
+      *stash*) item_categories[$key]="Stash" ;;
+      *worktree*) item_categories[$key]="Worktree" ;;
+      *remote*) item_categories[$key]="Remote" ;;
+      *mergetool*) item_categories[$key]="Merge" ;;
+      *status*|*" diff"*|"git diff"*) item_categories[$key]="Basic (status, diff)" ;;
+      *" add"*|*apply*) item_categories[$key]="Add" ;;
+      *commit*) item_categories[$key]="Commit" ;;
+      *branch*) item_categories[$key]="Branch" ;;
+      *checkout*|*switch*) item_categories[$key]="Checkout/Switch" ;;
+      *pull*|*fetch*) item_categories[$key]="Pull/Fetch" ;;
+      *push*) item_categories[$key]="Push" ;;
+      *merge*) item_categories[$key]="Merge" ;;
+      *rebase*) item_categories[$key]="Rebase" ;;
+      *log*|*whatchanged*) item_categories[$key]="Log" ;;
+      *reset*|*clean*|*restore*) item_categories[$key]="Reset/Clean/Restore" ;;
+      *show*|*describe*) item_categories[$key]="Show/Describe" ;;
+      *tag*) item_categories[$key]="Tags" ;;
+      *cherry-pick*) item_categories[$key]="Cherry-pick" ;;
+      *revert*) item_categories[$key]="Revert" ;;
+      *bisect*) item_categories[$key]="Bisect" ;;
+      *submodule*) item_categories[$key]="Submodule" ;;
+      *) item_categories[$key]="Other" ;;
+    esac
+  done
+
+  # Display by category
+  local -A displayed
+  local first_category=1
+
+  for cat in "${category_order[@]}"; do
+    # Check if category has items
+    local has_items=0
+    for key in ${(k)item_categories}; do
+      [[ "${item_categories[$key]}" == "$cat" ]] && has_items=1 && break
+    done
+    [[ $has_items -eq 0 ]] && continue
+
+    # Print separator and header
+    [[ $first_category -eq 0 ]] && echo ""
+    first_category=0
+    echo -e "${BOLD}${YELLOW}$cat${RESET}"
+
+    # Group items by git subcommand
+    local -A subcmd_groups=()
+    local subcmd_order=()
+    for key in ${(k)git_items}; do
+      if [[ "${item_categories[$key]}" == "$cat" ]] && [[ -z "${displayed[$key]}" ]]; then
+        local value="${git_items[$key]}"
+        local subcmd="~other"
+
+        # Extract git subcommand
+        if [[ "$value" == *"deprecated"* ]]; then
+          subcmd="~deprecated"
+        elif [[ "$value" == "<function>" ]]; then
+          subcmd="~function"
+        elif [[ "$value" =~ git\ ([a-z-]+) ]]; then
+          subcmd="${match[1]}"
+        fi
+
+        if [[ -z "${subcmd_groups[$subcmd]}" ]]; then
+          subcmd_groups[$subcmd]="$key"
+          subcmd_order+=("$subcmd")
+        else
+          subcmd_groups[$subcmd]+=" $key"
+        fi
+      fi
+    done
+
+    # Sort: normal subcommands first, then special (~) ones
+    local sorted_subcmds=()
+    for subcmd in ${(o)subcmd_order}; do
+      [[ "$subcmd" != ~* ]] && sorted_subcmds+=("$subcmd")
+    done
+    for subcmd in ${(o)subcmd_order}; do
+      [[ "$subcmd" == ~* ]] && sorted_subcmds+=("$subcmd")
+    done
+
+    # Print items grouped by subcommand
+    for subcmd in "${sorted_subcmds[@]}"; do
+      for key in ${(o)${(z)subcmd_groups[$subcmd]}}; do
+        local value="${git_items[$key]}"
+        if [[ "$value" == *"deprecated"* ]]; then
+          local replacement=$(echo "$value" | grep -o "%F{green}[^%]*" | sed 's/%F{green}//')
+          printf "  ${GRAY}%-15s${RESET} ${GRAY}→ Use ${GREEN}%s${RESET} ${GRAY}instead${RESET} ${YELLOW}(DEPRECATED)${RESET}\n" "$key" "$replacement"
+        elif [[ "$value" == "<function>" ]]; then
+          local func_body=$(functions "$key" 2>/dev/null | grep -E "git |command " | head -1 | sed 's/^[[:space:]]*//')
+          [[ ${#func_body} -gt 60 ]] && func_body="${func_body:0:57}..."
+          if [[ -n "$func_body" ]]; then
+            printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${GRAY}%s${RESET} ${CYAN}(FUNCTION)${RESET}\n" "$key" "$func_body"
+          else
+            printf "  ${CYAN}%-15s${RESET} ${GRAY}→${RESET} ${CYAN}<FUNCTION>${RESET}\n" "$key"
+          fi
+        else
+          printf "  ${GREEN}%-15s${RESET} ${GRAY}→${RESET} %s\n" "$key" "$value"
+        fi
+        displayed[$key]=1
+      done
+    done
+  done
+
+  # Summary
+  echo ""
+  echo -e "${GRAY}Total: ${#git_items[@]} aliases/functions${RESET}"
 }
-zle -N pet-select
-stty -ixon
-bindkey '^s' pet-select

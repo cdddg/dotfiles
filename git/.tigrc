@@ -1,4 +1,4 @@
-color cursor default color8 bold
+color cursor color254 color8 bold
 color title-focus color0 color4 bold
 color title-blur color0 color4 bold
 
@@ -13,3 +13,5 @@ set main-view-commit-title-graph = v2
 set main-view-id-width = 8
 
 bind main > >git checkout %(commit)
+
+# vim: ft=gitconfig

@@ -1,26 +1,37 @@
-if [[ -d /usr/local/opt/coreutils/libexec/gnubin ]]; then
-  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
-  alias ls='ls --color=auto'
-fi
-
-# IP addresses
+# System & Display
+alias path='echo -e ${PATH//:/\\n}'
 alias localip='ipconfig getifaddr en0'
 
-# trans
+# File System
+alias ls='lsd'
+alias rmemptydir='find . -name .DS_Store -delete; find . -type d ! -path "*/.git/*" -type d -empty -print -delete'
+
+# Translation Tools
 alias enzh="$HOME/trans -show-original-phonetics Y -speak en:zh-tw"
 alias zhen="$HOME/trans -play zh:en -b"
 
-# pre-commit
+# Git & Development
 alias pre-push='pre-commit run --hook-stage push'
 
-# cd to python command location
+# Python Development
 alias cdpy='cd $(which python | sed -e "s%/bin/python%%g")'
-
-# Remove .pyc files and __pycache__ directories
 alias rmpyc='find . \( -name "*.pyc" -or -name "*.pyo" \) -delete; find . -type d -name "__pycache__" -empty -print -delete'
+alias pypov='
+  echo "[🐍 pyenv]";
+  pyenv versions;
+  echo;
+  echo "[🪶 poetryenv]";
+  poetryenv versions
+'
+alias poetry-lock-version="head -1 poetry.lock | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'"
 
-# Remove .DS_Store files and empty directories, excluding .git directories
-alias rmemptydir='find . -name .DS_Store -delete; find . -type d ! -path "*/.git/*" -type d -empty -print -delete'
+# Productivity Tools
+alias pete="pet exec"
+alias btmb="btm --basic --group_processes"
+alias ats="atuin search --interactive"
 
-alias path='echo -e ${PATH//:/\\n}'
-alias ls='lsd'
+# Legacy / Commented Out
+# if [[ -d /usr/local/opt/coreutils/libexec/gnubin ]]; then
+#   export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+#   alias ls='ls --color=auto'
+# fi

@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+# gitleaks-group - Group gitleaks scan results by various criteria
+#
+# Description:
+#   Runs gitleaks on the current repository and groups the findings by different
+#   attributes such as commit, author, file, rule type, or date. Results are
+#   displayed in JSON format for easy parsing and analysis.
+#
+# Usage:
+#   gitleaks-group [OPTIONS]
+#
+# Options:
+#   -g, --group-by <field>    Group by: commit (default), author, file, rule, date
+#   -f, --format <format>     Output format: json (default), summary, table
+#   -h, --help                Show this help message
+#
+# Dependencies:
+#   - gitleaks (https://github.com/gitleaks/gitleaks)
+#   - jq (https://github.com/jqlang/jq)
+#
+# Examples:
+#   gitleaks-group                        # Group by commit (default)
+#   gitleaks-group -g author              # Group by author
+#   gitleaks-group -g file                # Group by file path
+#   gitleaks-group -g rule                # Group by rule type
+#   gitleaks-group -g date                # Group by date
+#   gitleaks-group -g commit -f summary   # Show commit summary
+#   gitleaks-group -g author -f table     # Show author table
+
+# Default values
+GROUP_BY="commit"
+FORMAT="json"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -g|--group-by)
+      GROUP_BY="$2"
+      shift 2
+      ;;
+    -f|--format)
+      FORMAT="$2"
+      shift 2
+      ;;
+    -h|--help)
+      grep '^#' "$0" | grep -E '^# (Description|Usage|Options|Examples|Dependencies)' -A 100 | grep -v '^#$' | sed 's/^# //' | sed 's/^#//'
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Use -h or --help for usage information" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Validate group-by option
+case "$GROUP_BY" in
+  commit|author|file|rule|date) ;;
+  *)
+    echo "Error: Invalid group-by value '$GROUP_BY'" >&2
+    echo "Valid options: commit, author, file, rule, date" >&2
+    exit 1
+    ;;
+esac
+
+# Validate format option
+case "$FORMAT" in
+  json|summary|table) ;;
+  *)
+    echo "Error: Invalid format value '$FORMAT'" >&2
+    echo "Valid options: json, summary, table" >&2
+    exit 1
+    ;;
+esac
+
+# Check dependencies
+for cmd in gitleaks jq; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: $cmd is not installed" >&2
+    exit 1
+  fi
+done
+
+# Spinner function
+show_spinner() {
+  local pid=$1
+  local delay=0.1
+  local spin='-\|/'
+
+  while kill -0 "$pid" 2>/dev/null; do
+    printf " [%c] Scanning repository for secrets..." "${spin:0:1}" >&2
+    spin="${spin:1}${spin:0:1}"
+    sleep "$delay"
+    printf "\r" >&2
+  done
+  printf "\033[K" >&2  # Clear line
+}
+
+# Create temp file
+orig=$(mktemp) || { echo "Error: mktemp failed" >&2; exit 1; }
+tmp="${orig}.json"
+mv "$orig" "$tmp"
+
+# Run gitleaks in background with spinner
+gitleaks detect --no-banner --report-format=json --report-path="$tmp" >/dev/null 2>&1 &
+gitleaks_pid=$!
+
+# Show spinner while scanning
+show_spinner "$gitleaks_pid"
+
+# Wait for gitleaks to finish
+wait "$gitleaks_pid" || true  # Ignore exit code (non-zero if leaks found)
+
+# Check if any leaks were found
+leak_count=$(jq 'length' "$tmp" 2>/dev/null || echo "0")
+if [[ "$leak_count" -eq 0 ]]; then
+  echo "✓ No leaks detected" >&2
+  rm -f "$tmp"
+  exit 0
+fi
+
+echo "Found $leak_count leak(s), grouping by $GROUP_BY..." >&2
+
+# Generate JQ query based on group-by option
+case "$GROUP_BY" in
+  commit)
+    jq_query='
+      group_by(.Commit) |
+      map({
+        key: (.[0].Date + " | " + (.[0].Commit[0:8]) + " | " + .[0].Author),
+        value: .
+      }) |
+      sort_by(.key) |
+      from_entries
+    '
+    ;;
+  author)
+    jq_query='
+      group_by(.Author) |
+      map({
+        key: .[0].Author,
+        value: .
+      }) |
+      sort_by(.key) |
+      from_entries
+    '
+    ;;
+  file)
+    jq_query='
+      group_by(.File) |
+      map({
+        key: .[0].File,
+        value: .
+      }) |
+      sort_by(.key) |
+      from_entries
+    '
+    ;;
+  rule)
+    jq_query='
+      group_by(.RuleID) |
+      map({
+        key: .[0].RuleID,
+        value: .
+      }) |
+      sort_by(.key) |
+      from_entries
+    '
+    ;;
+  date)
+    jq_query='
+      group_by(.Date[0:10]) |
+      map({
+        key: .[0].Date[0:10],
+        value: .
+      }) |
+      sort_by(.key) |
+      from_entries
+    '
+    ;;
+esac
+
+# Output based on format
+case "$FORMAT" in
+  json)
+    jq "$jq_query" "$tmp"
+    ;;
+  summary)
+    echo ""
+    jq -r "
+      $jq_query |
+      to_entries |
+      map(\"  [\(.value | length)] \(.key)\") |
+      .[]
+    " "$tmp"
+    echo ""
+    echo "Total: $leak_count leak(s)"
+    ;;
+  table)
+    echo ""
+    printf "%-6s  %s\n" "COUNT" "$(echo "$GROUP_BY" | tr '[:lower:]' '[:upper:]')"
+    printf "%-6s  %s\n" "------" "$(printf '%*s' 60 '' | tr ' ' '-')"
+    jq -r "
+      $jq_query |
+      to_entries |
+      map(\"\(.value | length)\t\(.key)\") |
+      .[]
+    " "$tmp" | while IFS=$'\t' read -r count key; do
+      printf "%-6s  %s\n" "$count" "$key"
+    done
+    echo ""
+    echo "Total: $leak_count leak(s)"
+    ;;
+esac
+
+# Cleanup
+rm -f "$tmp"
