@@ -5,10 +5,7 @@ Personal development environment configuration files.
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone --recursive https://github.com/yourusername/dotfiles.git
-cd dotfiles
-./install
+git clone --recurse-submodules https://github.com/cdddg/dotfiles.git && cd dotfiles && ./install
 ```
 
 ## What's Included

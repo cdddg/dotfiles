@@ -29,6 +29,10 @@ zinit light zdharma-continuum/fast-syntax-highlighting
 zinit ice lucid wait='0'
 zinit light zsh-users/zsh-completions
 
+# zsh: completion settings
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*:descriptions' format '[%d]'
+
 # zsh-users/zsh-autosuggestions: Fish-like fast/unobtrusive autosuggestions for zsh.
 zinit ice lucid wait="0" atload='_zsh_autosuggest_start'
 zinit light zsh-users/zsh-autosuggestions
@@ -45,21 +49,19 @@ zinit ice lucid wait"2" && zinit snippet OMZ::plugins/extract
 # MichaelAquilina/zsh-autoswitch-virtualenv: Automatically switch python virtualenvs when you cd into a directory.
 zinit light MichaelAquilina/zsh-autoswitch-virtualenv
 
-# junegunn/fzf-bin: A command-line fuzzy finder (GitHub release binary).
-zinit ice from"gh-r" as"program"
-zinit load junegunn/fzf-bin
-
 # Aloxaf/fzf-tab: Replace zsh's default completion selection menu with fzf!
 zinit light Aloxaf/fzf-tab
-zstyle ':completion:*:git-checkout:*' sort false  # disable sort when completing `git checkout`
-zstyle ':completion:*:descriptions' format '[%d]'  # # set descriptions format to enable group support
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'  # preview directory's content with exa when completing cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group ',' '.'  # switch group using `,` and `.`
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
 
 # romkatv/zsh-defer: Defer execution of commands until zsh is idle.
 zinit light romkatv/zsh-defer
-zsh-defer -a -c 'eval "$(atuin init zsh --disable-up-arrow --disable-ctrl-r)"; bindkey "^[[A" up-line-or-history; bindkey "^[OA" up-line-or-history'
+zsh-defer -a -c '
+  eval "$(atuin init zsh --disable-up-arrow --disable-ctrl-r)"
+  bindkey "^[[A" up-line-or-history
+  bindkey "^[OA" up-line-or-history
+'
 zsh-defer -a -c '
   eval "$(pyenv init - zsh)"
   eval "$(poetryenv init - zsh)"
@@ -71,7 +73,6 @@ zsh-defer -a -c '
   fi
   hash -r
 '
-
 
 source ~/.zsh_functions
 source ~/.zsh_aliases

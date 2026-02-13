@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Python
+.python-version
+.poetry-version
+
+# Environment
+.env.local

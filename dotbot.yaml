@@ -2,6 +2,9 @@
     link:
       create: true
       force: true
+    shell:
+      stderr: true
+      stdout: true
 - link:
     ~/.zshenv: zsh/.zshenv
     ~/.zprofile: zsh/.zprofile
@@ -11,6 +14,7 @@
     ~/.tmux.conf: tmux/.tmux.conf
     ~/.tmux: tmux/.tmux
     ~/.gitconfig: git/.gitconfig
+    ~/.gitignore: git/.gitignore
     ~/.tigrc: git/.tigrc
     ~/.lazygit: git/.lazygit
     ~/.config/nvim: nvim
@@ -29,11 +33,15 @@
       command: |-
         if ! command -v brew >/dev/null 2>&1; then
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
         brew update
         brew bundle --file=./Brewfile
         brew bundle list --brews --file=./Brewfile | xargs brew upgrade
         brew bundle list --casks --file=./Brewfile | xargs brew upgrade --cask
+
+    - description: Install Neovim via bob
+      command: bob install stable && bob use stable
 
     - description: Install global npm packages
       command: |-
@@ -45,34 +53,24 @@
           head -1
         '
 
+    - description: Install multiple Python versions via pyenv
+      command: sh ./dotbot-scripts/setup-pyenv.sh 3.9 3.10 3.11 3.12 3.13 3.14
+
+    - description: Install multiple Python versions via uv
+      command: |-
+        uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+        uv python list --only-installed
+
     - description: Import shell history into atuin
+      command: atuin import auto
+
+    - description: Install poetryenv
+      command: curl -fsSL https://raw.githubusercontent.com/cdddg/poetryenv/main/install.sh | bash
+
+    - description: Set macOS keyboard shortcuts (Safari sandboxed, use NSGlobalDomain as workaround)
       command: |-
-        if command -v atuin >/dev/null 2>&1; then
-          atuin import auto
-        else
-          echo "atuin not installed, skipping import"
-        fi
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "翻譯成繁體中文" "@~t"
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "檢視原始頁面" "@~o"
 
-    - description: Set Kitty app icon
-      command: |-
-        if command -v kitty >/dev/null 2>&1 && [ -f "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns" ]; then
-          kitty +runpy 'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns"
-        else
-          echo "Kitty or icon file not found, skipping icon setup"
-        fi
-
-    # - description: Install multiple Python versions via pyenv
-    #   command: sh ./dotbot-scripts/setup-pyenv.sh
-
-    # - description: Install multiple Python versions via uv
-    #   command: |-
-    #     if ! command -v uv >/dev/null 2>&1; then
-    #       echo "uv not found, skipping Python installation"
-    #       exit 0
-    #     fi
-    #     uv python install 3.9 3.10 3.11 3.12
-    #     uv python list --only-installed
-    #
-    # - description: ...
-    #   command: |-
-    #     curl -fsSL https://raw.githubusercontent.com/cdddg/poetryenv/main/install.sh | bash
+    - description: Set Kitty app icon (requires App Management permission)
+      command: kitty +runpy 'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns"

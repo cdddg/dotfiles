@@ -4,10 +4,10 @@
 cask "kitty"
 # Secure introspectable tunnels to localhost
 cask "ngrok"
-# Anthropic's Claude Code CLI
-cask "claude-code"
-# OpenAI Codex CLI
-cask "codex"
+# # Anthropic's Claude Code CLI
+# cask "claude-code"
+# # OpenAI Codex CLI
+# cask "codex"
 
 
 ### -- Performance Monitoring --
@@ -39,8 +39,9 @@ brew "tmux"
 brew "tree"
 # Internet file retriever
 brew "wget"
-# Command-line snippet manager
-brew "pet"
+# Command-line snippet manager (https://github.com/knqyf263/pet)
+tap "knqyf263/pet"
+brew "knqyf263/pet/pet"
 # Magical shell history
 brew "atuin"
 
@@ -83,6 +84,13 @@ brew "bat"
 brew "tig"
 
 
+### -- Kubernetes --
+
+# Kubernetes CLI to manage clusters in style (https://github.com/derailed/k9s)
+tap "derailed/k9s"
+brew "derailed/k9s/k9s"
+
+
 ### -- Security Tools --
 
 # Vulnerability scanner for container images, file systems, and Git repositories
@@ -108,6 +116,7 @@ brew "uv"
 brew "vegeta"
 
 # Bash Automated Testing System (bats-core plugins)
+tap "bats-core/bats-core"
 brew "bats-core/bats-core/bats-assert", link: false
 brew "bats-core/bats-core/bats-detik"
 brew "bats-core/bats-core/bats-file", link: false

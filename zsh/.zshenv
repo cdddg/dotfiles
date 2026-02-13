@@ -30,4 +30,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export HOMEBREW_AUTO_UPDATE_SECS=86400
 export HOMEBREW_NO_AUTO_UPDATE=1
 
+# kubeconfig
+export KUBECONFIG=$(find ~/.kube -maxdepth 1 -type f \( -name '*.kubeconfig' -o -name '*.yaml' -o -name '*_config' \) | tr '\n' ':')
+
 _ZSH_LOAD_TIMES+=(".zshenv:$(printf '%.2f' $(( (EPOCHREALTIME - _ZSHENV_T) * 1000 )))")
