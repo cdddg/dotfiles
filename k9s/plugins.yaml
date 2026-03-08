@@ -1,0 +1,96 @@
+plugins:
+  # Leverage stern (https://github.com/stern/stern) to output logs.
+  stern:
+    shortCut: Ctrl-Y
+    confirm: false
+    description: "Logs <Stern>"
+    scopes:
+      - pods
+    command: stern
+    background: false
+    args:
+      - --tail
+      - 50
+      - --exclude
+      - "GET / HTTP"
+      - $FILTER
+      - -n
+      - $NAMESPACE
+      - --context
+      - $CONTEXT
+
+  # Leverage stern + jq to output pretty-printed JSON logs.
+  stern-jq:
+    shortCut: Ctrl-J
+    confirm: false
+    description: "Logs <Stern+jq>"
+    scopes:
+      - pods
+    command: bash
+    background: false
+    args:
+      - -c
+      - |
+        stern \
+          --tail 50 \
+          --exclude 'GET / HTTP' \
+          --output json \
+          "$FILTER" \
+          -n "$NAMESPACE" \
+          --context "$CONTEXT" |
+
+        jq -Rr '
+
+          def ansi($n; $s):
+            "\u001b[\($n)m\($s)\u001b[0m";
+
+          def pod_color($pname):
+            [31,32,33,34,35,36,91,92,93,94,95,96] as $colors
+            | $colors[
+                ($pname | explode | add)
+                % ($colors | length)
+              ];
+
+          def level_color($lvl):
+            if $lvl == "ERROR" then 31
+            elif $lvl == "WARNING" then 33
+            else 32
+            end;
+
+          try fromjson catch . as $line |
+
+          (
+            if ($line | type) == "object"
+            then
+              ($line.message // "") as $raw
+              | (try ($raw | fromjson) catch { raw:$raw })
+            else
+              { raw:$line }
+            end
+          ) as $msg |
+
+          ($line.podName // "-") as $pod |
+          ($msg.asctime // "-") as $ts |
+          ($msg.levelname // "-") as $lvl |
+          ($msg.message // $msg.raw // "-") as $text |
+
+          (ansi(pod_color($pod); $pod) + " " + $ts + " " + ansi(level_color($lvl); $lvl) + " " + $text)
+        '
+
+  kube-metrics:
+    shortCut: m
+    confirm: false
+    description: "Metrics"
+    scopes:
+      - pods
+      - nodes
+    command: sh
+    background: false
+    args:
+      - -c
+      - |
+        if [ -n "$NAMESPACE" ]; then
+          kube-metrics pod --namespace=$NAMESPACE $NAME
+        else
+          kube-metrics node $NAME
+        fi

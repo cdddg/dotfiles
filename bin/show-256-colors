@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# show-256-colors - Display 256-color palette with color codes, HEX, and RGB values
+#
+# Description:
+#   Displays all 256 terminal colors in a formatted table showing:
+#   - Color index (0-255)
+#   - Color preview (background)
+#   - HEX value (if available from kitty theme)
+#   - RGB value (calculated or from theme)
+#
+#   For kitty terminal users, this script can read theme colors for indices 0-15.
+#   Colors 16-231 are from the 6x6x6 color cube, and 232-255 are grayscale.
+#
+# Usage:
+#   show-256-colors
+#
+# Dependencies:
+#   - tput (for terminal reset)
+#   - kitty (optional, for theme color reading)
+#
+# Output format:
+#   Each line shows 4 colors in the format:
+#   [index] [color block] [HEX] [RGB]
+#
+# Examples:
+#   show-256-colors              # Display full 256-color palette
+#   show-256-colors | less -R    # Page through with colors preserved
+
+# 6-level RGB values for color cube (16-231)
+levels=(0 95 135 175 215 255)
+
+# Initialize associative array for colors
+declare -A colors
+
+# Read kitty theme colors if available (for colors 0-15)
+if command -v kitty >/dev/null 2>&1 && kitty @ get-colors --configured >/dev/null 2>&1; then
+  while read -r name val; do
+    if [[ $name == color* ]]; then
+      idx="${name#color}"
+      colors[$idx]="$val"
+    fi
+  done < <(kitty @ get-colors --configured)
+fi
+
+# Display all 256 colors
+for (( i = 0; i < 256; i++ )); do
+  # Get HEX value for system colors (0-15), default to space
+  hex="${colors[$i]:- }"
+
+  # Calculate RGB values
+  if [[ -n "${colors[$i]}" ]]; then
+    # System colors 0-15: parse from HEX
+    h="${hex#\#}"
+    # Expand short HEX (#RGB) to full (#RRGGBB)
+    if [[ ${#h} -eq 3 ]]; then
+      h="${h:0:1}${h:0:1}${h:1:1}${h:1:1}${h:2:1}${h:2:1}"
+    fi
+    r=$((16#${h:0:2}))
+    g=$((16#${h:2:2}))
+    b=$((16#${h:4:2}))
+  elif (( i >= 16 && i <= 231 )); then
+    # 6x6x6 color cube
+    idx=$((i - 16))
+    r=${levels[idx/36]}
+    g=${levels[(idx/6)%6]}
+    b=${levels[idx%6]}
+  else
+    # Grayscale ramp 232-255
+    val=$((8 + (i - 232) * 10))
+    r=$val
+    g=$val
+    b=$val
+  fi
+  rgb_str="RGB(${r},${g},${b})"
+
+  # Print formatted output:
+  # - 2 spaces + 3-digit color index
+  # - Background color block (width 2)
+  # - HEX string in the color (width 7)
+  # - RGB string (width 16)
+  printf "  %3d  \e[48;5;%sm%-2s\e[0m \e[38;5;%sm%-7s\e[0m %-16s" \
+    "$i" "$i" "  " "$i" "${hex}" "$rgb_str"
+
+  # New line every 4 colors
+  if (( (i + 1) % 4 == 0 )); then
+    echo
+  fi
+done
+
+# Reset terminal style
+tput sgr0

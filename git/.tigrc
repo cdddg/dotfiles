@@ -1,0 +1,23 @@
+# cursor 無法保留各欄位的語法著色，這是 ncurses 的限制
+# https://github.com/jonas/tig/issues/830
+# https://github.com/jonas/tig/issues/1279
+color cursor color254 color8 bold
+
+color title-focus color0 color4 bold
+color title-blur color0 color4 bold
+
+set diff-highlight = true
+set vertical-split = yes
+set reference-format = [head][HEAD] (branch) {tag} {local-tag} <remote> hide:tracked-remote
+set line-graphics = auto
+
+set main-view = date:custom,format="%Y/%m/%d %H:%M:%S",local=true id author commit-title:yes,graph,refs
+set main-view-author-display = email-user
+set main-view-commit-title-graph = v2
+set main-view-id-width = 8
+
+# tig 不支援在一個 bind 裡 chain 多個 action（外部指令 + 內部指令）
+# https://github.com/jonas/tig/issues/1368
+bind main J +git checkout %(commit)
+
+# vim: ft=gitconfig

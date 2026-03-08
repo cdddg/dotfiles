@@ -1,0 +1,39 @@
+# System & Display
+alias path='echo -e ${PATH//:/\\n}'
+alias localip='ipconfig getifaddr en0'
+alias printenvc="printenv | sort | awk -F= '{printf \"\033[36m%s\033[0m=\033[33m%s\033[0m\n\", \$1, substr(\$0,index(\$0,\"=\")+1)}'"
+
+# File System
+alias ls='lsd'
+alias sweep-fs='
+find . -name .DS_Store -print -delete;
+find . -type d ! -path "*/.git/*" -empty -print -delete
+'
+
+# Git & Development
+alias pre-push='pre-commit run --hook-stage push'
+
+# Python Development
+alias cdpy='cd $(which python | sed -e "s%/bin/python%%g")'
+alias sweep-py='
+  find . -type d -name "__pycache__" -print -exec rm -rf {} +;
+  find . -name "*.py[co]" -print -delete;
+  find . -name ".pytest_cache" -print -exec rm -rf {} +;
+  find . -name ".mypy_cache" -print -exec rm -rf {} +;
+  find . -name ".ruff_cache" -print -exec rm -rf {} +;
+  find . -name ".tox" -print -exec rm -rf {} +;
+  find . -name ".nox" -print -exec rm -rf {} +
+'
+alias pypov='
+  echo "[🐍 pyenv]";
+  pyenv versions;
+  echo;
+  echo "[🪶 poetryenv]";
+  poetryenv versions
+'
+alias poetry-lock-version="head -1 poetry.lock | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'"
+
+# Productivity Tools
+alias pete="pet exec"
+alias btmb="btm --basic --group_processes"
+alias ats="atuin search --interactive"

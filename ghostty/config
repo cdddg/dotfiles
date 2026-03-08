@@ -1,0 +1,85 @@
+# Theme
+theme = Catppuccin Mocha
+
+# Font (repeat font-family for fallback chain)
+font-family = "Monaspace Neon Var"
+# CJK fallback
+font-family = "PingFang TC"
+font-size = 12
+adjust-cell-height = 6%
+
+# Monaspace font features: https://github.com/githubnext/monaspace#coding-ligatures
+font-feature = ss01
+font-feature = ss02
+font-feature = ss03
+font-feature = ss07
+font-feature = ss08
+font-feature = ss09
+font-feature = cv01=2
+font-feature = cv02
+
+# Keybindings — Tmux (prefix C-b = \x02)
+# keybind = cmd+t=text:\x02c
+# keybind = cmd+w=text:\x02x
+# keybind = cmd+d=text:\x02%
+# keybind = cmd+shift+d=text:\x02"
+# keybind = cmd+digit_1=unbind
+# keybind = cmd+digit_2=unbind
+# keybind = cmd+digit_3=unbind
+# keybind = cmd+digit_4=unbind
+# keybind = cmd+digit_5=unbind
+# keybind = cmd+digit_6=unbind
+# keybind = cmd+digit_7=unbind
+# keybind = cmd+digit_8=unbind
+# keybind = cmd+digit_9=unbind
+# keybind = cmd+1=text:\x021
+# keybind = cmd+2=text:\x022
+# keybind = cmd+3=text:\x023
+# keybind = cmd+4=text:\x024
+# keybind = cmd+5=text:\x025
+# keybind = cmd+6=text:\x026
+# keybind = cmd+7=text:\x027
+# keybind = cmd+8=text:\x028
+# keybind = cmd+9=text:\x029
+# # https://github.com/ghostty-org/ghostty/discussions/3382#discussioncomment-15518710
+# keybind = cmd+k=text:clear
+# keybind = cmd+n=text:\x02N
+# keybind = cmd+grave_accent=text:\x02)
+
+# Keybindings — Neovim
+keybind = cmd+s=text:\x13
+keybind = cmd+shift+s=text:\x1b[83;6u
+
+# Keybindings — Split
+keybind = ctrl+shift+h=goto_split:left
+keybind = ctrl+shift+j=goto_split:down
+keybind = ctrl+shift+k=goto_split:up
+keybind = ctrl+shift+l=goto_split:right
+keybind = alt+shift+h=resize_split:left,10
+keybind = alt+shift+j=resize_split:down,10
+keybind = alt+shift+k=resize_split:up,10
+keybind = alt+shift+l=resize_split:right,10
+
+# Keybindings — Font size (apply to all panes)
+keybind = all:super+equal=increase_font_size:1
+keybind = all:super+plus=increase_font_size:1
+keybind = all:super+minus=decrease_font_size:1
+keybind = all:super+zero=reset_font_size
+
+# Terminal
+# command = /bin/zsh -c "tmux new-session -A -s 0"
+shell-integration-features = no-cursor,sudo,title
+selection-clear-on-copy = true
+window-inherit-working-directory = false
+tab-inherit-working-directory = false
+split-inherit-working-directory = true
+confirm-close-surface = false
+maximize = true
+# window-padding-y = 6,2
+window-padding-x = 4
+
+# macOS
+macos-option-as-alt = left
+macos-titlebar-style = tabs
+macos-window-buttons = hidden
+mouse-hide-while-typing = true

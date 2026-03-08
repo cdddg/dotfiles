@@ -1,0 +1,110 @@
+- defaults:
+    link:
+      create: true
+      force: true
+    shell:
+      stderr: true
+- link:
+    ~/.zshenv: zsh/.zshenv
+    ~/.zprofile: zsh/.zprofile
+    ~/.zshrc: zsh/.zshrc
+    ~/.zsh_aliases: zsh/.zsh_aliases
+    ~/.zsh_functions: zsh/.zsh_functions
+    ~/.tmux.conf: tmux/.tmux.conf
+    ~/.gitconfig: git/.gitconfig
+    ~/.gitignore: git/.gitignore
+    ~/.tigrc: git/.tigrc
+    ~/.lazygit: git/.lazygit
+    ~/.config/nvim: nvim
+    ~/.config/lsd: lsd
+    ~/.config/kitty: kitty
+    ~/.config/ghostty: ghostty
+    ~/.config/pet: pet
+    ~/.config/bottom: bottom
+    ~/.config/k9s/config.yaml: k9s/config.yaml
+    ~/.config/k9s/plugins.yaml: k9s/plugins.yaml
+    ~/.local/bin/gitleaks-group: bin/gitleaks-group
+    ~/.local/bin/lsd-git-help: bin/lsd-git-help
+    ~/.local/bin/pet-grouped-list: bin/pet-grouped-list
+    ~/.local/bin/show-256-colors: bin/show-256-colors
+    ~/.local/bin/tig-dangling: bin/tig-dangling
+    ~/.local/bin/tig-gitleaks: bin/tig-gitleaks
+- shell:
+    - description: Install Homebrew and Brew packages
+      command: |-
+        if ! command -v brew >/dev/null 2>&1; then
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+        brew update
+        brew bundle --file=./Brewfile
+        brew bundle list --brews --file=./Brewfile | xargs brew upgrade
+        brew bundle list --casks --file=./Brewfile | xargs brew upgrade --cask
+
+    - description: Install and update tmux plugins via TPM
+      command: |-
+        if [ ! -d ~/.tmux/plugins/tpm ]; then
+          mkdir -p ~/.tmux/plugins/tpm
+          curl -fsSL https://github.com/tmux-plugins/tpm/archive/refs/tags/v3.1.0.tar.gz | tar xz -C ~/.tmux/plugins/tpm --strip-components=1
+        fi
+        ~/.tmux/plugins/tpm/bin/install_plugins
+        ~/.tmux/plugins/tpm/bin/update_plugins all
+        tmux source-file ~/.tmux.conf
+
+    - description: Install Neovim via bob
+      command: bob install stable && bob use stable
+
+    - description: Install global npm packages
+      command: |-
+        grep -vE '^\s*($|#)' npm-packages.txt | \
+        xargs -n1 -I {} sh -c '
+          printf "%s -> " "{}"
+          npm install --no-fund -g "{}" 2>&1 |
+          grep -E "(added|changed|removed|up to date|updated|audited)" |
+          head -1
+        '
+
+    - description: Install multiple Python versions via pyenv
+      command: sh ./dotbot-scripts/setup-pyenv.sh 3.9 3.10 3.11 3.12 3.13 3.14
+
+    - description: Install multiple Python versions via uv
+      command: |-
+        uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+        uv python list --only-installed
+
+    - description: Import shell history into atuin
+      command: atuin import auto
+
+    - description: Install poetryenv
+      command: curl -fsSL https://raw.githubusercontent.com/cdddg/poetryenv/main/install.sh | bash
+
+    - description: Set macOS keyboard shortcuts (Safari sandboxed, use NSGlobalDomain as workaround)
+      command: |-
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "翻譯成繁體中文" "@~t"
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "檢視原始頁面" "@~o"
+
+    - description: Install Catppuccin theme for k9s
+      command: |-
+        mkdir -p "$HOME/.config/k9s/skins"
+        curl -L https://github.com/catppuccin/k9s/archive/main.tar.gz | tar xz -C "$HOME/.config/k9s/skins" --strip-components=2 k9s-main/dist
+
+    - description: Install Catppuccin theme for Kitty
+      command: |-
+        if [ ! -d ~/.config/kitty/catppuccin-theme ]; then
+          mkdir -p ~/.config/kitty/catppuccin-theme
+          curl -fsSL https://github.com/catppuccin/kitty/archive/main.tar.gz | tar xz -C ~/.config/kitty/catppuccin-theme --strip-components=1
+        fi
+
+    - description: Set Kitty app icon (requires App Management permission)
+      command: |-
+        if ! command -v kitty >/dev/null 2>&1; then
+          echo "kitty not found, skipping"
+          exit 0
+        fi
+        if [ ! -d ~/.config/kitty/k0nserv-icon ]; then
+          mkdir -p ~/.config/kitty/k0nserv-icon
+          curl -fsSL https://github.com/k0nserv/kitty-icon/archive/refs/tags/2023-07-09.tar.gz | tar xz -C ~/.config/kitty/k0nserv-icon --strip-components=1
+        fi
+        sudo kitty +runpy \
+          'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' \
+          "${HOME}/.config/kitty/k0nserv-icon/build/neue_outrun.icns"

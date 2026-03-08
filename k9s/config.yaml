@@ -1,0 +1,5 @@
+k9s:
+  screenDumpDir: ~/.config/k9s/screen-dumps
+  ui:
+    skin: catppuccin-macchiato
+  defaultView: contexts
