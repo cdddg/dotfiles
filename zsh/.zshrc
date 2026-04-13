@@ -34,11 +34,14 @@ _prompt_pure_check_git_hooks() {
   prompt_pure_hooks_indicator=' '
   for hook in pre-commit pre-push; do
     [[ -x $hooks_path/$hook ]] \
-      && prompt_pure_hooks_indicator+=%F{green}✓%f || prompt_pure_hooks_indicator+=%F{yellow}✗%f
+      && prompt_pure_hooks_indicator+=%F{green}✔%f || prompt_pure_hooks_indicator+=%F{yellow}✘%f
   done
 }
 add-zsh-hook precmd _prompt_pure_check_git_hooks
 PROMPT=${PROMPT/'%(19V.'/'${prompt_pure_hooks_indicator}%(19V.'}
+
+# zsh: custom completions (must be before fast-syntax-highlighting, which calls zpcompinit to initialize compinit)
+fpath=(~/.zsh_completions $fpath)
 
 # zdharma-continuum/fast-syntax-highlighting: Feature-rich syntax highlighting for Zsh.
 zinit ice lucid wait='0' atinit='zpcompinit'
@@ -92,6 +95,7 @@ if [[ -n "$GHOSTTY_RESOURCES_DIR" ]]; then
 fi
 
 zsh-defer -a -c '
+  eval "$(/opt/homebrew/bin/brew shellenv)"
   eval "$(pyenv init - zsh)"
   eval "$(poetryenv init - zsh)"
   if [[ -n "$VIRTUAL_ENV" ]]; then

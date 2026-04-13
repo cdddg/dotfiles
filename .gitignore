@@ -1,3 +1,5 @@
-tmux/.tmux/plugins/
-kitty/k0nserv-icon/
 kitty/catppuccin-theme/
+kitty/k0nserv-icon/
+nvim/lazy-lock.json
+tmux/.tmux/plugins/
+zsh/completions/_k9s

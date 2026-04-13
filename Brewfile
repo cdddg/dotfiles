@@ -16,6 +16,8 @@ cask "ngrok"
 
 # PostgreSQL client library (includes psql, pg_dump, etc.)
 brew "libpq"
+# High performance in-memory data store used as database, cache, and message broker
+brew "redis"
 # GUI client for Redis (supports standalone, cluster, sentinel modes)
 cask "another-redis-desktop-manager"
 
@@ -95,10 +97,16 @@ brew "yq"
 
 ### -- Git Utilities --
 
+# Distributed version control system
+brew "git"
+# Tcl/Tk GUI for Git (git gui, gitk)
+brew "git-gui"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
 # GitHub CLI
 brew "gh"
+# GitLab CLI (create MRs, issues, pipelines from terminal)
+brew "glab"
 # Command-line tool that makes git easier to use with GitHub
 brew "hub"
 # Text interface for Git repositories
@@ -120,6 +128,9 @@ brew "stern"
 tap "bakito/tap"
 cask "kube-metrics"
 
+# Open source Kubernetes IDE (community fork of Lens)
+cask "openlens"
+
 
 ### -- Security Tools --
 
@@ -133,6 +144,8 @@ brew "gitleaks"
 
 # Node.js: JavaScript runtime and npm package manager
 brew "node"
+# Fast JavaScript/TypeScript runtime, bundler, and package manager
+brew "bun"
 
 # Python: Version management
 brew "pyenv"

@@ -1,5 +1,5 @@
 k9s:
-  screenDumpDir: ~/.config/k9s/screen-dumps
+  screenDumpDir: /Users/imp.lin/.config/k9s/screen-dumps
   ui:
     skin: catppuccin-macchiato
-  defaultView: contexts
+  defaultView: pods

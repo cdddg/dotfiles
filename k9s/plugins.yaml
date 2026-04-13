@@ -10,9 +10,13 @@ plugins:
     background: false
     args:
       - --tail
-      - 50
+      - 2000
       - --exclude
       - "GET / HTTP"
+      - --exclude
+      - "GET /v1/licenses/current"
+      - --exclude
+      - "OPTIONS /v1/licenses/current"
       - $FILTER
       - -n
       - $NAMESPACE
@@ -21,7 +25,7 @@ plugins:
 
   # Leverage stern + jq to output pretty-printed JSON logs.
   stern-jq:
-    shortCut: Ctrl-J
+    shortCut: Ctrl-U
     confirm: false
     description: "Logs <Stern+jq>"
     scopes:
@@ -32,8 +36,10 @@ plugins:
       - -c
       - |
         stern \
-          --tail 50 \
+          --tail 5000 \
           --exclude 'GET / HTTP' \
+          --exclude 'GET /v1/licenses/current' \
+          --exclude 'OPTIONS /v1/licenses/current' \
           --output json \
           "$FILTER" \
           -n "$NAMESPACE" \
@@ -72,7 +78,7 @@ plugins:
           ($line.podName // "-") as $pod |
           ($msg.asctime // "-") as $ts |
           ($msg.levelname // "-") as $lvl |
-          ($msg.message // $msg.raw // "-") as $text |
+          ($msg.exc_info // $msg.message // $msg.raw // "-") as $text |
 
           (ansi(pod_color($pod); $pod) + " " + $ts + " " + ansi(level_color($lvl); $lvl) + " " + $text)
         '
@@ -83,14 +89,26 @@ plugins:
     description: "Metrics"
     scopes:
       - pods
-      - nodes
-    command: sh
+    command: kubectl
     background: false
     args:
-      - -c
-      - |
-        if [ -n "$NAMESPACE" ]; then
-          kube-metrics pod --namespace=$NAMESPACE $NAME
-        else
-          kube-metrics node $NAME
-        fi
+      - top
+      - pod
+      - $NAME
+      - --namespace=$NAMESPACE
+      - --context=$CONTEXT
+      - --containers
+
+  node-metrics:
+    shortCut: m
+    confirm: false
+    description: "Metrics"
+    scopes:
+      - nodes
+    command: kubectl
+    background: false
+    args:
+      - top
+      - node
+      - $NAME
+      - --context=$CONTEXT
