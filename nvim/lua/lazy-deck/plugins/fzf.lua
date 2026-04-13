@@ -37,6 +37,14 @@ return {
     { '<leader>/', '<cmd>FzfLua lgrep_curbuf<cr>', desc = 'Search current buffer' },
     { '<leader>sb', '<cmd>FzfLua dap_breakpoints<cr>', desc = 'Search DAP [b]reakpoints' },
   },
+  init = function()
+    -- Deferred ui_select: override vim.ui.select early so it works
+    -- even before fzf-lua is loaded by a keymap or command.
+    vim.ui.select = function(...)
+      require('lazy').load { plugins = { 'fzf-lua' } }
+      return vim.ui.select(...)
+    end
+  end,
   config = function(_, opts)
     local fzf = require 'fzf-lua'
     fzf.setup(opts)
@@ -64,6 +72,7 @@ return {
       hidden = true,
       file_ignore_patterns = { '%.git/' },
       winopts = { preview = { hidden = true } },
+      line_query = true,
     },
     grep = {
       hidden = true,

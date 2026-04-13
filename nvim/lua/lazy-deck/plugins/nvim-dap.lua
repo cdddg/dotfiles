@@ -8,6 +8,7 @@ return {
       },
       {
         'igorlfs/nvim-dap-view',
+        version = 'v1.*',
         desc = 'Unified DAP UI in a single window (variables, breakpoints, REPL, etc.)',
         opts = {
           auto_toggle = true,

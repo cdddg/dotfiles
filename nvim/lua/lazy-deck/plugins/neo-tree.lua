@@ -59,6 +59,7 @@ return {
       git_status = {
         symbols = {
           modified = '󰙏',
+          conflict = '',
         },
       },
       symlink_target = { enabled = true },

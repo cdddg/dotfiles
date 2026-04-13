@@ -1,11 +1,8 @@
 return {
   'OXY2DEV/markview.nvim',
+  enabled = false,
   lazy = false,
-  opts = {
-    preview = {
-      filetypes = { 'md', 'rmd', 'quarto' },
-    },
-  },
+  opts = {},
 
   -- For blink.cmp's completion
   -- source

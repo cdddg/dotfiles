@@ -24,42 +24,13 @@ require('lazy').setup({
   --    }
   --
   -- 3. Module (separate file):
-  --    require 'kickstart.plugins.gitsigns'  -- loads from lua/kickstart/plugins/gitsigns.lua
+  --    require 'lazy-deck.plugins.gitsigns'  -- loads from lua/lazy-deck/plugins/gitsigns.lua
   --
   -- For more info: `:help lazy.nvim-🔌-plugin-spec`
 
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  require 'kickstart.plugins.blink-cmp', -- About Performant, batteries-included completion
-  require 'kickstart.plugins.conform', -- Lightweight yet powerful formatter
-  require 'kickstart.plugins.gitsigns',
-  require 'kickstart.plugins.indent_line',
-  require 'kickstart.plugins.mini',
-  require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.nvim-dap',
-  require 'kickstart.plugins.nvim-lint',
-  require 'kickstart.plugins.nvim-lspconfig',
-  require 'kickstart.plugins.nvim-treesitter', -- Nvim Treesitter configurations and abstraction layer
-  require 'kickstart.plugins.todo-comments',
-  require 'kickstart.plugins.which-key',
-
-  -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-  require 'supplement.colorscheme',
-  require 'supplement.plugins.codediff',
-  require 'supplement.plugins.fzf',
-  require 'supplement.plugins.grug-far',
-  require 'supplement.plugins.multicursor',
-  require 'supplement.plugins.numb',
-  require 'supplement.plugins.nvim-mark',
-  require 'supplement.plugins.nvim-ufo',
-  require 'supplement.plugins.outline',
-  require 'supplement.plugins.precognition',
-  require 'supplement.plugins.rainbow-csv',
-  require 'supplement.plugins.smart-splits',
-  require 'supplement.plugins.text-case',
-  require 'supplement.plugins.trouble',
-  require 'supplement.plugins.vim-kitty',
-  require 'supplement.plugins.vim-python-pep8-indent',
-  require 'supplement.plugins.vim-vindent',
+  require 'lazy-deck.colorscheme',
+  { import = 'lazy-deck.plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

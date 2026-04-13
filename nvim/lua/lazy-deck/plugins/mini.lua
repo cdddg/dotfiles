@@ -9,7 +9,14 @@ return {
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
+      require('mini.ai').setup {
+        n_lines = 500,
+        -- Disable around_next/inside_next so built-in TreeSitter node selection (v_an/v_in) works
+        mappings = {
+          around_next = '',
+          inside_next = '',
+        },
+      }
 
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --

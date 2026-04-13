@@ -335,16 +335,17 @@ return {
           -- or a suggestion from your LSP for this to activate.
           map('<leader>ca', vim.lsp.buf.code_action, 'goto Code [a]ction', { 'n', 'x' })
 
-          -- Find references for the word under your cursor.
-          map('gr', '<cmd>Lspsaga finder def+ref+imp<CR>', 'Goto [r]eferences')
+          -- TODO: `gr` conflicts with Neovim 0.11+ built-in gr* mappings (gra, grn, grr, grt, grx),
+          -- causing 300ms delay and shadowing all defaults. Remap to `gR` or del unwanted built-ins.
+          -- map('gr', '<cmd>Lspsaga finder def+ref+imp<CR>', 'Goto [r]eferences')
 
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gI', require('telescope.builtin').lsp_implementations, 'Goto [I]mplementation')
+          map('gI', vim.lsp.buf.implementation, 'Goto [I]mplementation')
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
-          map('gd', require('telescope.builtin').lsp_definitions, 'Go to [d]efinition')
+          map('gd', vim.lsp.buf.definition, 'Go to [d]efinition')
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
@@ -353,7 +354,7 @@ return {
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          -- map('grt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
+          map('gy', vim.lsp.buf.type_definition, 'Goto t[y]pe Definition')
 
           -- Additional; you can use the following mappings to navigate
           map('gs', vim.lsp.buf.signature_help, 'Signature Help')
@@ -405,7 +406,7 @@ return {
         end,
       })
 
-      -- List all active LSP clients
+      -- FIXME: Replace with built-in `:lsp` command (Neovim 0.12+), then remove this.
       vim.api.nvim_create_user_command('LspList', function()
         local clients = vim.lsp.get_clients()
         if #clients == 0 then

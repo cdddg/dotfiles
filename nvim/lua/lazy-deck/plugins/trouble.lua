@@ -1,7 +1,7 @@
 return {
   'folke/trouble.nvim',
   lazy = true,
-  version = 'v3.*',
+  -- version = 'v3.*', -- disabled: v3.7.2 tag not yet released, need main branch for nvim 0.12 compat fix
   dependencies = { 'nvim-tree/nvim-web-devicons' },
   keys = {
     {
