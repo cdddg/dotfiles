@@ -6,6 +6,15 @@
 [core]
 	excludesfile = ~/.gitignore
 	editor = nvim
+	# diffr palette (Catppuccin Mocha):
+	#   refine-added bg   166,227,161 = Mocha green     (#a6e3a1)
+	#   refine-removed bg 243,139,168 = Mocha red       (#f38ba8)
+	#   refine fg         69,71,90    = Mocha surface1  (#45475a)
+	# Non-Catppuccin (kept as-is on flavor change):
+	#   added bg   83,113,80   = custom darkened green for block bg
+	#   removed bg 121,69,84   = custom darkened red for block bg
+	#   added/removed fg 238,238,238 = generic light gray
+	# To switch flavor: replace only the three Catppuccin triplets above.
 	pager = diffr --line-numbers compact --colors added:none:foreground:238,238,238:background:83,113,80 --colors refine-added:none:foreground:69,71,90:background:166,227,161:bold --colors removed:none:foreground:238,238,238:background:121,69,84 --colors refine-removed:none:foreground:69,71,90:background:243,139,168:bold | less -R
 
 [http]

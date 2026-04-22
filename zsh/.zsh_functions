@@ -263,3 +263,333 @@ zsh-git-help() {
   echo ""
   echo -e "${GRAY}Total: ${#git_items[@]} aliases/functions${RESET}"
 }
+
+# gwtrm: Pick git worktree(s) via fzf and remove. Optionally delete the branch too.
+# Flags:
+#   -b, --with-branch  Also delete the branch (uses git branch -d; -D when -f given)
+#   -f, --force        git worktree remove --force (override tracked modifications);
+#                      with -b, also force branch delete (-D)
+# Safety (NOT overridable by -f):
+#   - Skip if worktree has untracked files
+#   - Skip if worktree's .claude/ has anything other than settings.local.json
+# Main worktree and the current worktree are excluded from the picker.
+gwtrm() {
+  local repo_root with_branch=0 force=0 arg
+  for arg in "$@"; do
+    case "$arg" in
+      -b|--with-branch) with_branch=1 ;;
+      -f|--force) force=1 ;;
+      -bf|-fb) with_branch=1; force=1 ;;
+      -h|--help)
+        echo "Usage: gwtrm [-b|--with-branch] [-f|--force]"; return 0 ;;
+      *) echo "gwtrm: unknown arg: $arg" >&2; return 1 ;;
+    esac
+  done
+
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || return
+
+  local list
+  list=$(git worktree list --porcelain 2>/dev/null \
+    | awk -v root="$repo_root" -v pwd="$PWD" '
+        BEGIN {
+          R="\033[0m"; DIM="\033[2m"
+          GREEN="\033[32m"; YELLOW="\033[33m"; GREY="\033[90m"
+        }
+        /^worktree /  { path=substr($0,10) }
+        /^HEAD /      { commit=substr($2,1,8) }
+        /^branch /    { branch=$2; sub("refs/heads/","",branch) }
+        /^detached$/  { branch="(detached)" }
+        /^$/ {
+          if (path && path!=root && path!=pwd) {
+            prefix=root"/"
+            rel=(index(path,prefix)==1 ? substr(path,length(prefix)+1) : path)
+            bcol=(branch=="(detached)" ? GREY : GREEN)
+            pad=45-length(branch); if (pad<0) pad=0
+            spaces=sprintf("%*s", pad, "")
+            printf "  %s%s%s%s %s%s%s  %s%s%s\t%s\t%s\n",
+              bcol, branch, R, spaces, YELLOW, commit, R, DIM, rel, R, path, branch
+          }
+          path=""; commit=""; branch=""
+        }')
+
+  if [[ -z $list ]]; then
+    echo "gwtrm: no removable worktrees (main and current are excluded)" >&2
+    return 0
+  fi
+
+  local selected
+  selected=$(print -r -- "$list" \
+    | fzf --ansi --multi \
+          --header='Remove worktree(s)  TAB=multi-select, ENTER=confirm' \
+          --delimiter='\t' --with-nth=1 \
+          --preview='git -C {2} log --oneline --decorate --color=always -20 2>/dev/null' \
+          --preview-window='right:60%:wrap')
+
+  [[ -z $selected ]] && return 0
+
+  local wt branch extra untracked
+  local warn=$'\033[33m' ok=$'\033[32m' dim=$'\033[2m' reset=$'\033[0m'
+  while IFS=$'\t' read -r _ wt branch; do
+    untracked=$(git -C "$wt" ls-files --others --exclude-standard 2>/dev/null)
+    if [[ -n $untracked ]]; then
+      print -u2 -- "${warn}skip${reset} ${dim}$wt${reset}  untracked files"
+      continue
+    fi
+    if [[ -d "$wt/.claude" ]]; then
+      extra=$(command ls -A "$wt/.claude" 2>/dev/null | grep -v '^settings.local.json$')
+      if [[ -n $extra ]]; then
+        print -u2 -- "${warn}skip${reset} ${dim}$wt${reset}  .claude/ has files other than settings.local.json"
+        continue
+      fi
+    fi
+    if (( force )); then
+      git worktree remove --force "$wt" || continue
+    else
+      git worktree remove "$wt" || continue
+    fi
+    print -u2 -- "${ok}removed${reset} ${dim}$wt${reset}"
+    if (( with_branch )) && [[ $branch != "(detached)" ]]; then
+      if (( force )); then
+        git branch -D "$branch"
+      else
+        git branch -d "$branch"
+      fi
+    fi
+  done <<< "$selected"
+}
+
+# gwtcd: Pick a git worktree via fzf and cd into it. Preview shows recent commits.
+# Display: "<*|·> <branch>  <commit>  <relative-path>  <dirty>"; absolute path is hidden but used for cd.
+# Dirty marker (lsd-style summary): ✔ = clean, ●N = N changed files (incl. untracked).
+# Colors match git defaults: commit=yellow, branch=green, detached=grey, path=dim.
+gwtcd() {
+  local repo_root target
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || return
+  target=$(git worktree list --porcelain 2>/dev/null \
+    | awk -v root="$repo_root" -v pwd="$PWD" '
+        BEGIN {
+          R="\033[0m"; DIM="\033[2m"; BOLD="\033[1m"
+          GREEN="\033[32m"; YELLOW="\033[33m"; GREY="\033[90m"
+        }
+        /^worktree /  { path=substr($0,10) }
+        /^HEAD /      { commit=substr($2,1,8) }
+        /^branch /    { branch=$2; sub("refs/heads/","",branch) }
+        /^detached$/  { branch="(detached)" }
+        /^$/ {
+          if (path) {
+            rel=path
+            if (path==root) rel="."
+            else { prefix=root"/"; if (index(path,prefix)==1) rel=substr(path,length(prefix)+1) }
+            mark=(path==pwd ? BOLD YELLOW "*" R : DIM "\xc2\xb7" R)
+            bcol=(branch=="(detached)" ? GREY : GREEN)
+            pad=45-length(branch); if (pad<0) pad=0
+            spaces=sprintf("%*s", pad, "")
+            # dirty marker (lsd-style): count changed files (incl. untracked).
+            #   clean -> green check (\xe2\x9c\x94, width 1); dirty -> yellow bullet + count (\xe2\x97\x8f).
+            # Placed right after the mark so it stays visible even when fzf truncates the line.
+            cmd="git -C \"" path "\" status --porcelain 2>/dev/null | wc -l"
+            cmd | getline cnt; close(cmd); cnt=cnt+0
+            if (cnt==0) { sym=GREEN "\xe2\x9c\x94" R; vis=1 }
+            else        { sym=YELLOW "\xe2\x97\x8f" cnt R; vis=1+length(cnt) }
+            spad=4-vis; if (spad<0) spad=0
+            sp=sprintf("%*s", spad, "")
+            printf "%s %s%s %s%s%s%s %s%s%s  %s%s%s\t%s\n",
+              mark, sym, sp, bcol, branch, R, spaces, YELLOW, commit, R, DIM, rel, R, path
+            path=""; commit=""; branch=""
+          }
+        }' \
+    | fzf --ansi --header='Switch to git worktree (* = current)' \
+          --delimiter='\t' --with-nth=1 \
+          --preview='git -C {2} log --oneline --decorate --color=always -20 2>/dev/null' \
+          --preview-window='right:60%:wrap' \
+    | awk -F'\t' '{print $2}')
+  [[ -n $target ]] && cd "$target"
+}
+
+# gwtmk: Create a git worktree for an EXISTING branch (local or remote) and cd into it.
+# Folder name = branch with each "/" replaced by "--"  (e.g. feat/foo -> feat--foo),
+#   or an explicit name given via -n/--name.
+# Location: $GWT_DIR if set, else <repo-root>/.claude/worktrees.
+# Only checks out branches that already exist:
+#   - local branch          -> checked out directly
+#   - only on a remote       -> a tracking local branch is created from it
+#   - not found anywhere      -> error (does NOT create a brand-new branch)
+# TAB after `gwtmk` completes existing local + remote branch names.
+gwtmk() {
+  local branch= name=
+  while (( $# )); do
+    case "$1" in
+      -n|--name)
+        [[ -n $2 ]] || { echo "gwtmk: $1 needs a value" >&2; return 1; }
+        name="$2"; shift 2 ;;
+      --name=*) name="${1#--name=}"; shift ;;
+      -n=*)     name="${1#-n=}"; shift ;;
+      -h|--help)
+        print -r -- 'gwtmk - create a git worktree for an EXISTING branch and cd into it.
+
+Usage:
+  gwtmk <branch>                 # folder = branch with each "/" replaced by "--"
+  gwtmk -n <name> <branch>       # folder = <name>
+  gwtmk --name <name> <branch>   # same
+  gwtmk --name=<name> <branch>   # "=" form also works
+  gwtmk -n=<name> <branch>
+  gwtmk <branch> -n <name>       # the flag may come before OR after the branch
+
+Branch (only existing ones are accepted):
+  local branch     -> checked out directly
+  only on a remote -> a tracking local branch is created from it
+  not found        -> error (gwtmk never creates a brand-new branch)
+
+TAB after `gwtmk` completes existing local + remote branch names.
+
+Location:
+  $GWT_DIR if set, else <repo-root>/.claude/worktrees
+  e.g. export GWT_DIR="$HOME/worktrees"'
+        return 0 ;;
+      -*) echo "gwtmk: unknown flag: $1" >&2; return 1 ;;
+      *) branch="$1"; shift ;;
+    esac
+  done
+  if [[ -z $branch ]]; then
+    echo "Usage: gwtmk [-n|--name <folder>] <existing-branch>   (TAB completes branches)" >&2
+    return 1
+  fi
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null) \
+    || { echo "gwtmk: not in a git repo" >&2; return 1; }
+
+  local base_dir="${GWT_DIR:-$repo_root/.claude/worktrees}"
+  local dir="$base_dir/${name:-${branch//\//--}}"
+
+  if [[ -e $dir ]]; then
+    echo "gwtmk: path already exists: $dir" >&2
+    return 1
+  fi
+  mkdir -p "$base_dir" || return 1
+
+  local out
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    # existing local branch
+    out=$(git worktree add "$dir" "$branch" 2>&1) || { print -r -- "$out" >&2; return 1; }
+  else
+    # not local: look for it on any remote, strip the remote name to compare
+    local r remote_ref=
+    while IFS= read -r r; do
+      if [[ ${r#*/} == $branch ]]; then remote_ref=$r; break; fi
+    done < <(git for-each-ref --format='%(refname:short)' refs/remotes 2>/dev/null)
+
+    if [[ -z $remote_ref ]]; then
+      echo "gwtmk: branch not found locally or on any remote: $branch" >&2
+      echo "        (gwtmk only checks out existing branches)" >&2
+      return 1
+    fi
+    out=$(git worktree add --track -b "$branch" "$dir" "$remote_ref" 2>&1) \
+      || { print -r -- "$out" >&2; return 1; }
+  fi
+
+  print -r -- "$out"
+  cd "$dir"
+}
+
+# completion for gwtmk: -n/--name flag, plus existing local heads (full) +
+# remote branches (remote name stripped). After -n the word is a free-text folder name.
+_gwtmk() {
+  if [[ $words[CURRENT-1] == (-n|--name) ]]; then
+    return 0   # folder name is free text
+  fi
+  if [[ $words[CURRENT] == -* ]]; then
+    compadd -- -n --name   # only offer flags when the user is typing one
+    return
+  fi
+  local -a _gwt_branches
+  _gwt_branches=(
+    ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null)"}
+    ${(f)"$(git for-each-ref --format='%(refname:lstrip=3)' refs/remotes 2>/dev/null)"}
+  )
+  _gwt_branches=(${(u)_gwt_branches:#HEAD})
+  compadd -a _gwt_branches
+}
+# gwtln: symlink per-worktree, gitignored paths (e.g. .venv .claude) from the MAIN
+# worktree into the CURRENT worktree, so a fresh worktree can reuse them.
+# Each arg is a path relative to the repo root. Existing entries are left untouched.
+#   gwtln .venv .claude            # link both from main worktree into here
+# Note: a symlinked .venv shares the main worktree's editable installs (pip -e .) and
+#       its scripts' absolute paths — fine for read/import, but `pip install -e .` will
+#       point at the MAIN source tree, not this worktree's. Use a real `poetry install`
+#       per worktree if you need editable installs to track this worktree's code.
+gwtln() {
+  if [[ $# -eq 0 || $1 == -h || $1 == --help ]]; then
+    print -r -- 'Usage: gwtln <path> [<path> ...]
+  Symlink each <path> (relative to repo root) from the MAIN worktree into the
+  current worktree. Intended for gitignored, per-worktree dirs like .venv .claude.
+  Skips paths missing in main or already present here. TAB completes main-worktree
+  ignored entries not yet present in the current worktree.'
+    [[ $# -eq 0 ]] && return 1 || return 0
+  fi
+
+  local cur main
+  cur=$(git rev-parse --show-toplevel 2>/dev/null) \
+    || { echo "gwtln: not in a git repo" >&2; return 1; }
+  main=$(git worktree list --porcelain 2>/dev/null \
+    | awk '/^worktree /{print substr($0,10); exit}')
+  [[ -n $main ]] || { echo "gwtln: cannot resolve main worktree" >&2; return 1; }
+  if [[ $main == $cur ]]; then
+    echo "gwtln: you are in the main worktree; nothing to link from" >&2
+    return 1
+  fi
+
+  local p src dst rc=0
+  local warn=$'\033[33m' ok=$'\033[32m' dim=$'\033[2m' reset=$'\033[0m'
+  for p in "$@"; do
+    p=${p#./}; p=${p%/}
+    src="$main/$p"; dst="$cur/$p"
+    if [[ ! -e $src && ! -L $src ]]; then
+      print -u2 -- "${warn}skip${reset} ${dim}$p${reset}  not found in main worktree"
+      rc=1; continue
+    fi
+    if [[ -L $dst ]]; then
+      print -u2 -- "${warn}skip${reset} ${dim}$p${reset}  already a symlink here"
+      continue
+    fi
+    if [[ -e $dst ]]; then
+      print -u2 -- "${warn}skip${reset} ${dim}$p${reset}  already exists here (remove it first)"
+      rc=1; continue
+    fi
+    mkdir -p "${dst:h}"
+    if ln -s "$src" "$dst"; then
+      print -- "${ok}linked${reset} $p ${dim}-> $src${reset}"
+    else
+      rc=1
+    fi
+  done
+  return $rc
+}
+
+# completion for gwtln: ignored entries present in main worktree but not yet here.
+_gwtln() {
+  local cur main
+  cur=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
+  main=$(git worktree list --porcelain 2>/dev/null \
+    | awk '/^worktree /{print substr($0,10); exit}')
+  [[ -n $main && $main != $cur ]] || return 0
+  local -a cands
+  # --ignored=matching lists ignored entries (e.g. ".venv/") without recursing into them
+  cands=(${(f)"$(git -C "$main" status --porcelain --ignored=matching 2>/dev/null \
+    | awk '/^!! /{print substr($0,4)}')"})
+  cands=(${cands%/})                       # drop trailing slash on dirs
+  local -a todo
+  local c
+  for c in $cands; do [[ -e "$cur/$c" || -L "$cur/$c" ]] || todo+=("$c"); done
+  compadd -a todo
+}
+
+# compinit is queued via zsh-defer before this file is sourced; defer compdef so it
+# runs after compinit has defined `compdef`.
+if (( $+functions[zsh-defer] )); then
+  zsh-defer compdef _gwtmk gwtmk
+  zsh-defer compdef _gwtln gwtln
+else
+  compdef _gwtmk gwtmk 2>/dev/null
+  compdef _gwtln gwtln 2>/dev/null
+fi

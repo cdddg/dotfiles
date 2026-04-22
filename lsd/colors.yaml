@@ -1,5 +1,7 @@
-# Catppuccin Mocha theme for lsd
-# Reference: https://catppuccin.com/
+# Catppuccin Mocha palette for lsd.
+# To switch flavor: replace every hex below using the semantic name in the
+# inline comment (e.g. "green" -> the new flavor's green hex).
+# Palette reference: https://catppuccin.com/palette
 
 # User and Group - subdued colors since usually same owner
 user: "#6c7086" # surface2 - low contrast

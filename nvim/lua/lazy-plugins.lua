@@ -30,7 +30,40 @@ require('lazy').setup({
 
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   require 'lazy-deck.colorscheme',
-  { import = 'lazy-deck.plugins' },
+  require 'lazy-deck.plugins.blink-cmp',
+  -- require 'lazy-deck.plugins.codediff', -- unused
+  require 'lazy-deck.plugins.conform',
+  require 'lazy-deck.plugins.diffview',
+  require 'lazy-deck.plugins.inline-diff',
+  require 'lazy-deck.plugins.fzf',
+
+  -- GitConflictDetected error when disabling diagnostics on Neovim nightly #119; https://github.com/akinsho/git-conflict.nvim/issues/119
+  require 'lazy-deck.plugins.git-conflict',
+
+  require 'lazy-deck.plugins.gitsigns',
+  require 'lazy-deck.plugins.grug-far',
+  require 'lazy-deck.plugins.indent-line',
+  require 'lazy-deck.plugins.mini',
+  require 'lazy-deck.plugins.multicursor',
+  require 'lazy-deck.plugins.neo-tree',
+  require 'lazy-deck.plugins.numb',
+  require 'lazy-deck.plugins.nvim-dap',
+  require 'lazy-deck.plugins.nvim-lint',
+  require 'lazy-deck.plugins.mason-lsp',
+  require 'lazy-deck.plugins.nvim-mark',
+  require 'lazy-deck.plugins.nvim-treesitter',
+  require 'lazy-deck.plugins.nvim-ufo',
+  require 'lazy-deck.plugins.outline',
+  -- require 'lazy-deck.plugins.precognition', -- unused
+  require 'lazy-deck.plugins.rainbow-csv',
+  require 'lazy-deck.plugins.smart-splits',
+  require 'lazy-deck.plugins.text-case',
+  require 'lazy-deck.plugins.todo-comments',
+  require 'lazy-deck.plugins.trouble',
+  require 'lazy-deck.plugins.vim-kitty',
+  require 'lazy-deck.plugins.vim-python-pep8-indent',
+  require 'lazy-deck.plugins.vim-vindent',
+  require 'lazy-deck.plugins.which-key',
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

@@ -1,69 +1,116 @@
--- Neo-tree is a Neovim plugin to browse the file system
--- https://github.com/nvim-neo-tree/neo-tree.nvim
-
+-- -- Neo-tree is a Neovim plugin to browse the file system
+-- -- https://github.com/nvim-neo-tree/neo-tree.nvim
 return {
-  'nvim-neo-tree/neo-tree.nvim',
-  lazy = true,
-  cmd = 'Neotree',
-  version = '3.*',
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
-    'MunifTanjim/nui.nvim',
-  },
-  keys = {
-    { '<leader>f', ':Neotree filesystem reveal=true toggle=true<CR>', desc = 'NeoTree [F]ilesystem' },
-    -- { '<leader>b', ':Neotree buffers reveal=true toggle=true<CR>', desc = 'NeoTree [B]uffers' },
-    { '<leader>gs', ':Neotree git_status reveal=true toggle=true<CR>', desc = 'NeoTree Git [s]tatus' },
-  },
-  opts = {
-    filesystem = {
-      filtered_items = {
-        visible = true,
-        never_show = { '.DS_Store', '.git', '__pycache__', '.coverage' },
-      },
-      follow_current_file = { enabled = true },
-      use_libuv_file_watcher = true,
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    branch = 'v3.x',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      'nvim-tree/nvim-web-devicons',
     },
-    buffers = {
-      follow_current_file = { enabled = true },
+    keys = {
+      { '<leader>f', ':Neotree filesystem reveal=true toggle=true<CR>', desc = 'NeoTree [F]ilesystem' },
+      -- { '<leader>b', ':Neotree buffers reveal=true toggle=true<CR>', desc = 'NeoTree [B]uffers' },
+      { '<leader>gs', ':Neotree git_status reveal=true toggle=true<CR>', desc = 'NeoTree Git [s]tatus' },
     },
-    window = {
-      mappings = {
-        ['<bs>'] = 'none',
-        ['<CR>'] = 'none',
-        ['oc'] = 'none',
-        ['od'] = 'none',
-        ['og'] = 'none',
-        ['om'] = 'none',
-        ['on'] = 'none',
-        ['os'] = 'none',
-        ['ot'] = 'none',
-        ['u'] = 'navigate_up',
-        ['o'] = 'open',
-        ['O'] = { 'show_help', nowait = false, config = { title = 'Order by', prefix_key = 'O' } },
-        ['Oc'] = { 'order_by_created', nowait = false },
-        ['Od'] = { 'order_by_diagnostics', nowait = false },
-        ['Og'] = { 'order_by_git_status', nowait = false },
-        ['Om'] = { 'order_by_modified', nowait = false },
-        ['On'] = { 'order_by_name', nowait = false },
-        ['Os'] = { 'order_by_size', nowait = false },
-        ['Ot'] = { 'order_by_type', nowait = false },
-      },
-    },
-    default_component_configs = {
-      modified = {
-        symbol = '󱙃 ',
-        highlight = 'NeoTreeModified',
-      },
-      git_status = {
-        symbols = {
-          modified = '󰙏',
-          conflict = '',
+    opts = {
+      enable_diagnostics = false,
+      filesystem = {
+        filtered_items = {
+          visible = true,
+          never_show = { '.DS_Store', '.git', '__pycache__', '.coverage' },
+        },
+        follow_current_file = { enabled = true },
+        use_libuv_file_watcher = true,
+        window = {
+          mappings = {
+            ['oc'] = 'none',
+            ['od'] = 'none',
+            ['og'] = 'none',
+            ['om'] = 'none',
+            ['on'] = 'none',
+            ['os'] = 'none',
+            ['ot'] = 'none',
+            ['u'] = 'navigate_up',
+            ['o'] = 'open',
+            ['gf'] = function(state)
+              vim.ui.open(state.tree:get_node().path) -- 用系統預設 App 開啟
+            end,
+          },
         },
       },
-      symlink_target = { enabled = true },
+      buffers = {
+        follow_current_file = { enabled = true },
+        window = {
+          mappings = {
+            ['oc'] = 'none',
+            ['od'] = 'none',
+            ['og'] = 'none',
+            ['om'] = 'none',
+            ['on'] = 'none',
+            ['os'] = 'none',
+            ['ot'] = 'none',
+            ['u'] = 'navigate_up',
+            ['o'] = 'open',
+          },
+        },
+      },
+      git_status = {
+        window = {
+          mappings = {
+            ['oc'] = 'none',
+            ['od'] = 'none',
+            ['og'] = 'none',
+            ['om'] = 'none',
+            ['on'] = 'none',
+            ['os'] = 'none',
+            ['ot'] = 'none',
+            ['u'] = 'navigate_up',
+            ['o'] = 'open',
+          },
+        },
+      },
+      default_component_configs = {
+        git_status = {
+          symbols = {
+            added = '',
+            modified = '',
+            conflict = '',
+          },
+        },
+        symlink_target = { enabled = true },
+      },
     },
   },
+  {
+    'antosha417/nvim-lsp-file-operations',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-neo-tree/neo-tree.nvim', -- makes sure that this loads after Neo-tree.
+    },
+    config = function()
+      require('lsp-file-operations').setup()
+    end,
+  },
+  {
+    's1n7ax/nvim-window-picker',
+    version = '2.*',
+    config = function()
+      require('window-picker').setup {
+        filter_rules = {
+          include_current_win = false,
+          autoselect_one = true,
+          -- filter using buffer options
+          bo = {
+            -- if the file type is one of following, the window will be ignored
+            filetype = { 'neo-tree', 'neo-tree-popup', 'notify' },
+            -- if the buffer type is one of following, the window will be ignored
+            buftype = { 'terminal', 'quickfix' },
+          },
+        },
+      }
+    end,
+  },
 }
--- vim: ts=2 sts=2 sw=2 et
+-- -- vim: ts=2 sts=2 sw=2 et

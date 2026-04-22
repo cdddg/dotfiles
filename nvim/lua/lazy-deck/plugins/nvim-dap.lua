@@ -4,6 +4,7 @@ return {
     dependencies = {
       {
         'jay-babu/mason-nvim-dap.nvim',
+        version = 'v2.*',
         desc = 'Manages and installs DAP adapters via Mason (bridge between Mason and nvim-dap)',
       },
       {
@@ -11,7 +12,7 @@ return {
         version = 'v1.*',
         desc = 'Unified DAP UI in a single window (variables, breakpoints, REPL, etc.)',
         opts = {
-          auto_toggle = true,
+          auto_toggle = false,
           -- winbar = {
           --   controls = {
           --     enabled = true,
@@ -59,7 +60,17 @@ return {
       },
       {
         '<F7>',
-        '<cmd>DapViewToggle!<cr>',
+        function()
+          local dv = require 'dap-view'
+          dv.toggle(true)
+          for _, win in ipairs(vim.api.nvim_list_wins()) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            if vim.bo[buf].filetype == 'dap-view' then
+              vim.api.nvim_set_current_win(win)
+              return
+            end
+          end
+        end,
         desc = 'Debug: Toggle Dap View',
       },
       {
@@ -88,6 +99,21 @@ return {
       vim.fn.sign_define('DapBreakpointCondition', { text = '◐', texthl = 'DapBreakpointCondition' })
       vim.fn.sign_define('DapBreakpointRejected', { text = '○', texthl = 'DapBreakpointRejected' })
       vim.fn.sign_define('DapStopped', { text = '⮕', texthl = 'DapStopped', linehl = 'DapStoppedLine' })
+
+      local dap = require 'dap'
+      local dv = require 'dap-view'
+      local function open_and_focus()
+        dv.open()
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          if vim.bo[buf].filetype == 'dap-view' then
+            vim.api.nvim_set_current_win(win)
+            return
+          end
+        end
+      end
+      dap.listeners.before.attach['dap-view'] = open_and_focus
+      dap.listeners.before.launch['dap-view'] = open_and_focus
     end,
   },
   {

@@ -92,22 +92,12 @@ return {
 
       -- Toggle features
       map('n', '<leader>gtb', gitsigns.toggle_current_line_blame, { desc = 'Toggle [b]lame annotation on current line' })
-      map('n', '<leader>gtd', function()
-        gitsigns.toggle_word_diff()
-        gitsigns.toggle_linehl()
-      end, { desc = 'Toggle Git [d]etail view (deleted, word_diff, linehl)' })
 
       local nontext_hl = vim.api.nvim_get_hl(0, { name = 'NonText', link = false })
       vim.api.nvim_set_hl(0, 'GitSignsCurrentLineBlame', {
         fg = nontext_hl.fg,
         bg = nontext_hl.bg,
         bold = true,
-      })
-
-      local gitsigns_change_hl = vim.api.nvim_get_hl(0, { name = 'GitSignsChange' })
-      vim.api.nvim_set_hl(0, 'GitSignsChangeLn', {
-        fg = 'none',
-        bg = '#5d430c',
       })
     end,
   },

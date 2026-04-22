@@ -1,0 +1,76 @@
+- defaults:
+    link:
+      create: true
+      force: true
+    shell:
+      stderr: true
+- link:
+    ~/.zshenv: zsh/.zshenv
+    ~/.zprofile: zsh/.zprofile
+    ~/.zshrc: zsh/.zshrc
+    ~/.zsh_aliases: zsh/.zsh_aliases
+    ~/.zsh_functions: zsh/.zsh_functions
+    ~/.tmux.conf: tmux/.tmux.conf
+    ~/.gitconfig: git/.gitconfig
+    ~/.gitignore: git/.gitignore
+    ~/.tigrc: git/.tigrc
+    ~/.lazygit: git/.lazygit
+    ~/.config/nvim: nvim
+    ~/.config/lsd: lsd
+    ~/.config/kitty: kitty
+    ~/.config/ghostty: ghostty
+    ~/.config/pet: pet
+    ~/.config/bottom: bottom
+    ~/.config/k9s/config.yaml: k9s/config.yaml
+    ~/.config/k9s/plugins.yaml: k9s/plugins.yaml
+    ~/.local/bin/gitleaks-pivot: bin/gitleaks-pivot
+    ~/.local/bin/lsd-git-help: bin/lsd-git-help
+    ~/.local/bin/pet-grouped-list: bin/pet-grouped-list
+    ~/.local/bin/show-256-colors: bin/show-256-colors
+    ~/.local/bin/tig-fsck: bin/tig-fsck
+    ~/.local/bin/tig-gitleaks: bin/tig-gitleaks
+- shell:
+    - description: Install Homebrew and Brew packages
+      command: sh ./.dotbot-scripts/setup-brew.sh
+
+    - description: Install and update tmux plugins via TPM
+      command: sh ./.dotbot-scripts/setup-tmux.sh
+
+    - description: Install Neovim via bob
+      command: bob install stable && bob use stable
+
+    - description: Install global npm packages
+      command: sh ./.dotbot-scripts/install-npm-globals.sh
+
+    - description: Install multiple Python versions via pyenv
+      command: sh ./.dotbot-scripts/setup-pyenv.sh 3.9 3.10 3.11 3.12 3.13 3.14
+
+    - description: Install multiple Python versions via uv
+      command: |-
+        uv python install 3.9 3.10 3.11 3.12 3.13 3.14
+        uv python list --only-installed
+
+    - description: Generate zsh completions for tools that don't ship them via brew
+      command: |-
+        mkdir -p "$HOME/.zsh_completions"
+        k9s completion zsh > "$HOME/.zsh_completions/_k9s"
+
+    - description: Import shell history into atuin
+      command: atuin import auto
+
+    - description: Install poetryenv
+      command: curl -fsSL https://raw.githubusercontent.com/cdddg/poetryenv/main/install.sh | bash
+
+    - description: Set macOS keyboard shortcuts (Safari sandboxed, use NSGlobalDomain as workaround)
+      command: |-
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "翻譯成繁體中文" "@~t"
+        defaults write NSGlobalDomain NSUserKeyEquivalents -dict-add "檢視原始頁面" "@~o"
+
+    - description: Install Catppuccin theme for k9s
+      command: sh ./.dotbot-scripts/install-catppuccin-k9s.sh
+
+    - description: Install Catppuccin theme for Kitty
+      command: sh ./.dotbot-scripts/install-catppuccin-kitty.sh
+
+    - description: Set Kitty app icon (requires App Management permission)
+      command: sh ./.dotbot-scripts/setup-kitty-icon.sh

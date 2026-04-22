@@ -6,12 +6,22 @@ return {
   keys = {
     {
       '<leader>dd',
-      '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+      function()
+        local filter = { buf = 0 }
+        local sev = require('diagnostics').get_severity()
+        if sev then filter.severity = sev end
+        require('trouble').toggle { mode = 'diagnostics', filter = filter }
+      end,
       desc = 'Trouble: Toggle [d]ocument diagnostics (current buffer)',
     },
     {
       '<leader>dw',
-      '<cmd>Trouble diagnostics toggle<cr>',
+      function()
+        local filter = {}
+        local sev = require('diagnostics').get_severity()
+        if sev then filter.severity = sev end
+        require('trouble').toggle { mode = 'diagnostics', filter = filter }
+      end,
       desc = 'Trouble: Toggle [w]orkspace diagnostics (global)',
     },
     {

@@ -78,14 +78,5 @@ vim.o.swapfile = false -- 不使用 .swp 交換檔
 vim.o.backup = false -- 不產生備份檔
 vim.o.writebackup = false -- 儲存時不額外寫入備份
 vim.o.spell = true -- 啟用拼字檢查（可依語言設定擴充）
-vim.diagnostic.config {
-  signs = {
-    text = {
-      [vim.diagnostic.severity.ERROR] = '✖',
-      [vim.diagnostic.severity.WARN] = '󱈸',
-      [vim.diagnostic.severity.INFO] = 'ℹ',
-      [vim.diagnostic.severity.HINT] = '⚑',
-    },
-  },
-}
+-- Diagnostic signs and config are consolidated in mason-lsp.lua
 -- vim: ts=2 sts=2 sw=2 et

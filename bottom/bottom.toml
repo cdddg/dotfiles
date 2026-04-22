@@ -1,7 +1,37 @@
 [flags]
+# -- behavior --
+rate = "1s"                    # 更新頻率（也可寫 1000ms）
+tree = true                    # 預設用 tree mode（你要的）
+process_command = false        # 顯示完整 command line（不只程式名）
+group_processes = false        # tree 模式下要關掉，否則會被 group 蓋掉
+case_sensitive = false         # 搜尋不分大小寫
+regex = false                  # 預設關閉 regex（按 R 切換）
+current_usage = true           # CPU% 顯示「相對於單顆 core」
+mem_as_value = true            # 記憶體用實際數值不是 %
 process_memory_as_value = true
-default_widget_type = "process"
-group_processes = true
+
+# -- interface --
+default_widget_type = "process"  # 啟動聚焦行程面板
+expanded = true                  # 啟動時展開預設 widget（佔滿整頁）
+network_use_bytes = false        # 網路用 bits（true = bytes）
+network_use_log = true           # 網路圖用對數刻度
+network_use_binary_prefix = true # KiB / MiB（true）vs KB / MB（false）
+
+[processes]
+columns = [
+  "pid",
+  "name",
+  "cpu%",
+  "mem%",
+  "read",
+  "write",
+  "t.read",
+  "t.write",
+  "user",
+  "state",
+  "time",
+]
+
 
 [[row]]
 [[row.child]]

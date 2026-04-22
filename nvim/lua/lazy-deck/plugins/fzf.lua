@@ -70,19 +70,22 @@ return {
     },
     files = {
       hidden = true,
-      file_ignore_patterns = { '%.git/' },
+      file_ignore_patterns = { '%.git/', '%.claude/worktrees/' },
       winopts = { preview = { hidden = true } },
       line_query = true,
     },
     grep = {
       hidden = true,
-      file_ignore_patterns = { '%.git/' },
+      file_ignore_patterns = { '%.git/', '%.claude/worktrees/' },
       fzf_opts = {
         ['--delimiter'] = ':',
         ['--with-nth'] = '1,4..', -- 顯示 filename 和 content，跳過 line:column
       },
     },
     grep_curbuf = {
+      winopts = { preview = { hidden = true } },
+    },
+    ui_select = {
       winopts = { preview = { hidden = true } },
     },
   },

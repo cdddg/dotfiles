@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+show_help() {
+  cat <<'EOF'
+Usage: tig-fsck [options]
+
+Browse dangling commit tips reported by `git fsck` in tig.
+
+Options:
+  -r, --no-reflog   ignore reflog reachability (pass --no-reflog to fsck)
+  -w, --walk        走祖先歷史 (預設 --no-walk,只顯示 seed 進 tig 的 tip commits)
+  -h, --help        show this help
+
+Scenario (假設 repo 物件全貌):
+
+    main ──► M3 ── M2 ── M1
+                    │
+                    ├── R1 ── R2     # reachable only from reflog
+                    │
+                    └── D1 ── D2     # unreachable from refs and reflogs
+
+為什麼只列 D2、R2,不列 D1、R1?
+  `git fsck` 只報 dangling commit tips。
+  D1 被 D2 引用為 parent、R1 被 R2 引用為 parent,不算 tip,所以不會被列出。
+  加上 -w 後 tig 會從這些 tip 沿 parent 鏈往回走,D1、R1 才會跟著出現。
+
+在 tig 裡會看到:
+
+  tig-fsck        ▸ main 歷史 + 獨立的 D2
+  tig-fsck -r     ▸ main 歷史 + 獨立的 D2、R2
+  tig-fsck -w     ▸ main 歷史 + D2─D1 從 M2 岔出一條分支
+  tig-fsck -r -w  ▸ main 歷史 + D2─D1、R2─R1 從 M2 各岔一條分支
+
+Note: -w 只影響 tig 顯示;seed 進 tig 的永遠是 fsck 的 dangling tips。
+EOF
+}
+
+reflog_flag=""
+walk_flag="--no-walk"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -h | --help)
+    show_help
+    exit 0
+    ;;
+  --no-reflog)
+    reflog_flag="--no-reflog"
+    ;;
+  --walk)
+    walk_flag=""
+    ;;
+  -*)
+    opt=${1:1}
+    for ((i = 0; i < ${#opt}; i++)); do
+      case ${opt:i:1} in
+      r) reflog_flag="--no-reflog" ;;
+      w) walk_flag="" ;;
+      h)
+        show_help
+        exit 0
+        ;;
+      *)
+        echo "Unknown flag: -${opt:i:1}" >&2
+        exit 2
+        ;;
+      esac
+    done
+    ;;
+  *)
+    echo "Unexpected argument: $1" >&2
+    exit 2
+    ;;
+  esac
+  shift
+done
+
+git rev-parse --git-dir >/dev/null 2>&1 || {
+  echo "Not a git repository." >&2
+  exit 2
+}
+
+command -v tig >/dev/null 2>&1 || {
+  echo "tig not found in PATH." >&2
+  exit 127
+}
+
+fsck_args=()
+[[ -n $reflog_flag ]] && fsck_args+=("$reflog_flag")
+
+commits=()
+while IFS= read -r sha; do
+  commits+=("$sha")
+done < <(
+  git fsck "${fsck_args[@]}" 2>/dev/null |
+    awk '$1 == "dangling" && $2 == "commit" {print $3}'
+)
+
+if ((${#commits[@]} == 0)); then
+  echo "No dangling commits found." >&2
+  exit 1
+fi
+
+tig_args=(--all)
+[[ -n $walk_flag ]] && tig_args+=("$walk_flag")
+
+tig "${tig_args[@]}" "${commits[@]}"

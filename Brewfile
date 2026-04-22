@@ -113,6 +113,9 @@ brew "hub"
 brew "tig"
 # Diff highlighting tool (word-level diff colorizer for git)
 brew "diffr"
+# Jira CLI (interact with Jira issues from terminal, https://github.com/ankitpokhrel/jira-cli)
+tap "ankitpokhrel/jira-cli"
+brew "ankitpokhrel/jira-cli/jira-cli"
 
 
 ### -- Kubernetes --

@@ -6,22 +6,28 @@ plugins:
     description: "Logs <Stern>"
     scopes:
       - pods
-    command: stern
+    command: bash
     background: false
     args:
-      - --tail
-      - 2000
-      - --exclude
-      - "GET / HTTP"
-      - --exclude
-      - "GET /v1/licenses/current"
-      - --exclude
-      - "OPTIONS /v1/licenses/current"
-      - $FILTER
-      - -n
-      - $NAMESPACE
-      - --context
-      - $CONTEXT
+      - -c
+      - |
+        # 從 deployment 鑽入 pods 時，k9s 會把 label selector（如 app=foo）塞進 $FILTER，
+        # 含 = 時改用 stern -l，否則照舊當 pod 名稱 regex。
+        Q='$FILTER'
+        if [[ "$Q" == *=* ]]; then
+          set -- -l "$Q"
+        else
+          set -- "$Q"
+        fi
+
+        stern \
+          --tail 2000 \
+          --exclude 'GET / HTTP' \
+          --exclude 'GET /v1/licenses/current' \
+          --exclude 'OPTIONS /v1/licenses/current' \
+          "$@" \
+          -n "$NAMESPACE" \
+          --context "$CONTEXT"
 
   # Leverage stern + jq to output pretty-printed JSON logs.
   stern-jq:
@@ -35,13 +41,22 @@ plugins:
     args:
       - -c
       - |
+        # 從 deployment 鑽入 pods 時，k9s 會把 label selector（如 app=foo）塞進 $FILTER，
+        # 含 = 時改用 stern -l，否則照舊當 pod 名稱 regex。
+        Q='$FILTER'
+        if [[ "$Q" == *=* ]]; then
+          set -- -l "$Q"
+        else
+          set -- "$Q"
+        fi
+
         stern \
           --tail 5000 \
           --exclude 'GET / HTTP' \
           --exclude 'GET /v1/licenses/current' \
           --exclude 'OPTIONS /v1/licenses/current' \
           --output json \
-          "$FILTER" \
+          "$@" \
           -n "$NAMESPACE" \
           --context "$CONTEXT" |
 

@@ -1,56 +1,58 @@
 #!/usr/bin/env bash
-# gitleaks-group - Group gitleaks scan results by various criteria
-#
-# Description:
-#   Runs gitleaks on the current repository and groups the findings by different
-#   attributes such as commit, author, file, rule type, or date. Results are
-#   displayed in JSON format for easy parsing and analysis.
-#
-# Usage:
-#   gitleaks-group [OPTIONS]
-#
-# Options:
-#   -g, --group-by <field>    Group by: commit (default), author, file, rule, date
-#   -f, --format <format>     Output format: json (default), summary, table
-#   -h, --help                Show this help message
-#
-# Dependencies:
-#   - gitleaks (https://github.com/gitleaks/gitleaks)
-#   - jq (https://github.com/jqlang/jq)
-#
-# Examples:
-#   gitleaks-group                        # Group by commit (default)
-#   gitleaks-group -g author              # Group by author
-#   gitleaks-group -g file                # Group by file path
-#   gitleaks-group -g rule                # Group by rule type
-#   gitleaks-group -g date                # Group by date
-#   gitleaks-group -g commit -f summary   # Show commit summary
-#   gitleaks-group -g author -f table     # Show author table
 
-# Default values
+show_help() {
+  cat <<'EOF'
+Usage: gitleaks-pivot [options]
+
+Run gitleaks on the current repository and group findings by commit, author,
+file, rule, or date.
+
+Options:
+  -g, --group-by <field>   commit (default), author, file, rule, date
+  -f, --format <format>    json (default), summary, table
+  -h, --help               show this help
+
+Notes:
+  With -g commit -f table, extra columns MSG and RULES are included.
+
+Dependencies:
+  gitleaks (https://github.com/gitleaks/gitleaks)
+  jq       (https://github.com/jqlang/jq)
+
+Examples:
+  gitleaks-pivot                        # group by commit (default)
+  gitleaks-pivot -g author              # group by author
+  gitleaks-pivot -g file                # group by file path
+  gitleaks-pivot -g rule                # group by rule type
+  gitleaks-pivot -g date                # group by date
+  gitleaks-pivot -g commit -f summary   # commit summary
+  gitleaks-pivot -g author -f table     # author table
+  gitleaks-pivot -g commit -f table     # commit table + msg + rule ids
+EOF
+}
+
 GROUP_BY="commit"
 FORMAT="json"
 
-# Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -g|--group-by)
-      GROUP_BY="$2"
-      shift 2
-      ;;
-    -f|--format)
-      FORMAT="$2"
-      shift 2
-      ;;
-    -h|--help)
-      grep '^#' "$0" | grep -E '^# (Description|Usage|Options|Examples|Dependencies)' -A 100 | grep -v '^#$' | sed 's/^# //' | sed 's/^#//'
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1" >&2
-      echo "Use -h or --help for usage information" >&2
-      exit 1
-      ;;
+  -g | --group-by)
+    GROUP_BY="$2"
+    shift 2
+    ;;
+  -f | --format)
+    FORMAT="$2"
+    shift 2
+    ;;
+  -h | --help)
+    show_help
+    exit 0
+    ;;
+  *)
+    echo "Unknown option: $1" >&2
+    echo "Use -h or --help for usage information" >&2
+    exit 1
+    ;;
   esac
 done
 
@@ -199,16 +201,36 @@ case "$FORMAT" in
     ;;
   table)
     echo ""
-    printf "%-6s  %s\n" "COUNT" "$(echo "$GROUP_BY" | tr '[:lower:]' '[:upper:]')"
-    printf "%-6s  %s\n" "------" "$(printf '%*s' 60 '' | tr ' ' '-')"
-    jq -r "
-      $jq_query |
-      to_entries |
-      map(\"\(.value | length)\t\(.key)\") |
-      .[]
-    " "$tmp" | while IFS=$'\t' read -r count key; do
-      printf "%-6s  %s\n" "$count" "$key"
-    done
+    if [[ "$GROUP_BY" == "commit" ]]; then
+      {
+        printf "COUNT\tDATE\tSHA\tAUTHOR\tMSG\tRULES\n"
+        printf "%s\t%s\t%s\t%s\t%s\t%s\n" "-----" "----" "---" "------" "---" "-----"
+        jq -r "
+          $jq_query |
+          to_entries |
+          map(
+            \"\(.value | length)\t\" +
+            .value[0].Date + \"\t\" +
+            .value[0].Commit[0:8] + \"\t\" +
+            .value[0].Author + \"\t\" +
+            (.value[0].Message | split(\"\n\")[0]) + \"\t\" +
+            (.value | map(.RuleID) | unique | join(\", \"))
+          ) |
+          .[]
+        " "$tmp"
+      } | column -t -s $'\t'
+    else
+      printf "%-6s  %s\n" "COUNT" "$(echo "$GROUP_BY" | tr '[:lower:]' '[:upper:]')"
+      printf "%-6s  %s\n" "------" "$(printf '%*s' 60 '' | tr ' ' '-')"
+      jq -r "
+        $jq_query |
+        to_entries |
+        map(\"\(.value | length)\t\(.key)\") |
+        .[]
+      " "$tmp" | while IFS=$'\t' read -r count key; do
+        printf "%-6s  %s\n" "$count" "$key"
+      done
+    fi
     echo ""
     echo "Total: $leak_count leak(s)"
     ;;

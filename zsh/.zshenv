@@ -35,8 +35,27 @@ export VIRTUAL_ENV_DISABLE_PROMPT=20
 export HOMEBREW_AUTO_UPDATE_SECS=86400
 export HOMEBREW_NO_AUTO_UPDATE=1
 
-# fzf: Use tab/shift-tab to navigate up/down
-export FZF_DEFAULT_OPTS='--bind tab:down,btab:up'
+# fzf: shared base for zsh fzf-tab + nvim fzf-lua + plain `fzf`.
+# Catppuccin Mocha palette — pure-style minimal (teal accent, mauve/peach for matches).
+# To switch flavor: replace each hex below using the semantic name in the legend.
+# Palette reference: https://catppuccin.com/palette
+#   #94e2d5 = teal      (prompt, pointer)
+#   #a6e3a1 = green     (marker)
+#   #cba6f7 = mauve     (hl)
+#   #fab387 = peach     (hl+)
+#   #cdd6f4 = text      (fg, fg+)
+#   #313244 = surface0  (bg+)
+#   #6c7086 = surface2  (header, info)
+export FZF_DEFAULT_OPTS="\
+--bind=tab:down,btab:up \
+--height=40% \
+--layout=reverse \
+--info=inline-right \
+--prompt='❯ ' \
+--pointer='❯' \
+--marker='┃' \
+--color='prompt:#94e2d5,pointer:#94e2d5,marker:#a6e3a1,hl:#cba6f7,hl+:#fab387,fg:#cdd6f4,fg+:#cdd6f4,bg+:#313244,gutter:-1,header:#6c7086,info:#6c7086'\
+"
 
 # k9s: Use ~/.config/k9s instead of ~/Library/Application Support/k9s
 export K9S_CONFIG_DIR="$HOME/.config/k9s"

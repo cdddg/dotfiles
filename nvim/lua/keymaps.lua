@@ -12,11 +12,18 @@ vim.keymap.set('n', '*', function()
 end, { noremap = true, silent = true, desc = 'Highlight word under cursor without moving' })
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '[d', function() vim.diagnostic.jump { count = -1 } end, { desc = 'Go to previous [d]iagnostic message' })
-vim.keymap.set('n', ']d', function() vim.diagnostic.jump { count = 1 } end, { desc = 'Go to next [d]iagnostic message' })
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump { count = -1, severity = require('diagnostics').get_severity() }
+end, { desc = 'Go to previous [d]iagnostic message' })
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump { count = 1, severity = require('diagnostics').get_severity() }
+end, { desc = 'Go to next [d]iagnostic message' })
+vim.keymap.set('n', '<leader>dl', function()
+  require('diagnostics').cycle()
+end, { desc = 'Cycle diagnostic [l]evel filter' })
 vim.keymap.set('n', '<leader>de', function()
   if vim.diagnostic then
-    vim.diagnostic.open_float(nil, { focusable = true })
+    vim.diagnostic.open_float(nil, { focusable = true, severity = require('diagnostics').get_severity() })
   else
     print 'No diagnostics available.'
   end
@@ -70,7 +77,9 @@ vim.keymap.set('x', 'P', function() paste_and_snapshot '"+P`]' end)
 vim.keymap.set({ 'n', 'x' }, 'x', '"_x')
 
 -- Select all lines
-vim.keymap.set('x', 'gG', 'gg<Esc>VG$', { noremap = true, silent = true })
+-- NOTE: `ag` shadows mini.ai's generic "pair of g" textobj (rarely used in practice);
+-- side effect is a timeoutlen wait on v{a,i}<x> when the next key is pressed slowly.
+vim.keymap.set('x', 'ag', '<Esc>ggVG$', { noremap = true, silent = true, desc = 'Select all' })
 
 -- Select last pasted text
 vim.keymap.set('n', 'gV', function()
@@ -125,9 +134,7 @@ local function replace_selected_in_buffer()
   vim.api.nvim_feedkeys(keys, 'n', false)
 end
 
--- TODO: `gri` is a built-in LSP "go to implementation" mapping since Neovim 0.11+.
--- Visual mode doesn't conflict with normal mode, but the keymap is conceptually confusing.
--- vim.keymap.set('v', 'gri', replace_selected_in_buffer, { silent = true, desc = 'Replace selected text (interactive)' })
+vim.keymap.set('v', 'grs', replace_selected_in_buffer, { silent = true, desc = 'Replace selected text (interactive)' })
 
 -- Replace selected text with clipboard content
 local function replace_selected_with_clipboard()
